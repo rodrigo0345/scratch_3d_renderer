@@ -5,16 +5,16 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
+extern SDL_Window *window;
+extern SDL_Renderer *renderer;
 
 // the color buffer needs to be non implementation specific as each color
 // uses 32bits/4bytes in memory
-uint32_t *color_buffer = NULL;
-SDL_Texture *color_buffer_texture = NULL;
+extern uint32_t *color_buffer;
+extern SDL_Texture *color_buffer_texture;
 
-int window_height = 600;
-int window_width = 800;
+extern int window_height;
+extern int window_width;
 
 bool initialize_window(void);
 void destroy_window(void);
@@ -23,4 +23,3 @@ void clear_color_buffer(uint32_t color);
 void render_color_buffer(void);
 
 #endif // !DISPLAY_H
-#define DISPLAY_H

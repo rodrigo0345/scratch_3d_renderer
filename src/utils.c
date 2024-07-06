@@ -1,5 +1,12 @@
 #include "utils.h"
 
+void draw_pixel(const int x, const int y, const uint32_t color) {
+  if(x < 0 || x >= window_width || y < 0 || y >= window_height) {
+    return;
+  }
+  color_buffer[window_width * y + x] = color;
+}
+
 void draw_grid(const int h, const int w, const int size, const uint32_t color) {
 
   // Iterate over each pixel in the window
@@ -20,10 +27,10 @@ void draw_grid(const int h, const int w, const int size, const uint32_t color) {
     for (int x = 0; x < window_width; x++) {
       // Check if the current column should have a vertical line
       if (fill_vborder) {
-        color_buffer[window_width * y + x] = color;
+        draw_pixel(x, y, color);
         fill_vborder--;
       } else if ((x && (x % w == 0)) || continuous_hline) {
-        color_buffer[window_width * y + x] = color;
+        draw_pixel(x, y, color);
         fill_vborder = size - 1;
       }
     }
@@ -34,7 +41,7 @@ void draw_rect(const int x, const int y, const int width, const int height,
                const uint32_t color) {
   for (int y_it = y; y_it < y + height; y_it++) {
     for (int x_it = x; x_it < x + width; x_it++) {
-      color_buffer[y_it * window_width + x_it] = color;
+      draw_pixel(x_it, y_it, color);
     }
   }
 }
