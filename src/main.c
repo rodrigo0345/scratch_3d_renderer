@@ -93,8 +93,7 @@ void process_input(void) {
   }
 }
 
-void draw_background_grid(const int h, const int w, const int size,
-                          const uint32_t color) {
+void draw_grid(const int h, const int w, const int size, const uint32_t color) {
 
   // Iterate over each pixel in the window
   int fill_hborder = 0;
@@ -124,7 +123,19 @@ void draw_background_grid(const int h, const int w, const int size,
   }
 }
 
-void update(void) { draw_background_grid(30, 30, 2, 0x000000FF); }
+void draw_rect(const int x, const int y, const int width, const int height,
+               const uint32_t color) {
+  for (int y_it = y; y_it < y + height; y_it++) {
+    for (int x_it = x; x_it < x + width; x_it++) {
+      color_buffer[y_it * window_width + x_it] = color;
+    }
+  }
+}
+
+void update(void) {
+  draw_rect(400, 200, 300, 200, 0xFFFF0000);
+  draw_grid(100, 100, 4, 0xFFFFFFFF);
+}
 
 void clear_color_buffer(uint32_t color) {
   for (int y = 0; y < window_height; y++) {
@@ -146,7 +157,7 @@ void render(void) {
 
   render_color_buffer();
 
-  clear_color_buffer(0xFFFFFFFF);
+  clear_color_buffer(0xFF000000);
 
   SDL_RenderPresent(renderer);
 }
