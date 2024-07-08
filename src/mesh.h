@@ -5,12 +5,21 @@
 #include "triangle.h"
 #include "vector.h"
 
-#define N_MESH_VERTICES 8
+#define N_CUBE_VERTICES 8
+extern vec3_t mesh_vertices[N_CUBE_VERTICES];
 
-extern vec3_t mesh_vertices[N_MESH_VERTICES];
+#define N_CUBE_FACES (6 * 2)
+extern face_t mesh_faces[N_CUBE_FACES];
 
-#define N_MESH_FACES (6 * 2)
+typedef struct {
+  vec3_t *vertices;
+  face_t *mesh_faces;
+  vec3_t rotation;
+} mesh_t;
 
-extern face_t mesh_faces[N_MESH_FACES];
+extern mesh_t mesh;
+
+void load_cube_mesh_data(void);
+void free_resources(void);
 
 #endif

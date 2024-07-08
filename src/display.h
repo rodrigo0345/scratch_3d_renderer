@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define FPS 144 
+#define FPS 60 
 
 // how much time each frame needs to take
 // we then need to tell the cpu to wait this time

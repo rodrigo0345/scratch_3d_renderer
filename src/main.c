@@ -42,6 +42,8 @@ void setup(void) {
   color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
+
+  load_cube_mesh_data();
 }
 
 // this was just for fun
@@ -106,16 +108,19 @@ void update(void) {
   // initializa the array of triangles to render
   triangles_to_render = NULL;
 
-  cube_rotation.y += 0.01;
-  cube_rotation.x += 0.01;
-  cube_rotation.z += 0.01;
+  mesh.rotation.y += 0.01;
+  mesh.rotation.x += 0.01;
+  mesh.rotation.z += 0.01;
 
-  for (int i = 0; i < N_MESH_FACES; i++) {
+  const int n_faces = array_length(mesh.mesh_faces);
+
+  for (int i = 0; i < n_faces; i++) {
+
     face_t curr_face = mesh_faces[i];
     vec3_t face_vertices[3] = {
-        mesh_vertices[curr_face.a],
-        mesh_vertices[curr_face.b],
-        mesh_vertices[curr_face.c],
+        mesh.vertices[curr_face.a],
+        mesh.vertices[curr_face.b],
+        mesh.vertices[curr_face.c],
     };
 
     triangle_t projected_triangle;
@@ -124,9 +129,9 @@ void update(void) {
     for (int j = 0; j < 3; j++) {
       vec3_t transformed_vertex = face_vertices[j];
 
-      transformed_vertex = vec3_rotate_y(transformed_vertex, cube_rotation.y);
-      transformed_vertex = vec3_rotate_x(transformed_vertex, cube_rotation.x);
-      transformed_vertex = vec3_rotate_z(transformed_vertex, cube_rotation.z);
+      transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
+      transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
+      transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
       // we need to rotate before translate because
       // the center of the rotation is always {0, 0, 0}
@@ -193,6 +198,7 @@ int main(void) {
   }
 
   destroy_window();
+  free_resources();
 
   return 0;
 }
