@@ -5,6 +5,12 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
+#define FPS 24 
+
+// how much time each frame needs to take
+// we then need to tell the cpu to wait this time
+#define FRAME_TARGET_TIME (1000 / FPS)
+
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;
 
