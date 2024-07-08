@@ -1,5 +1,6 @@
 #include "display.h"
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 SDL_Window *window = NULL;
@@ -74,26 +75,27 @@ void destroy_window(void) {
 }
 
 void draw_pixel(const int x, const int y, const uint32_t color) {
-  if(x < 0 || x >= window_width || y < 0 || y >= window_height) {
+  if (x < 0 || x >= window_width || y < 0 || y >= window_height) {
     return;
   }
   color_buffer[window_width * y + x] = color;
 }
 
-void draw_line(const int x0, const int y0, const int x1, const int y1){
+void draw_line(const int x0, const int y0, const int x1, const int y1,
+               const uint32_t color) {
   const int delta_x = (x1 - x0);
   const int delta_y = (y1 - y0);
 
-  const int side_length = abs(delta_x);
+  const int side_length = delta_x > delta_y ? abs(delta_x) : abs(delta_y);
 
-  const float inc_x = delta_x / (float) side_length;
-  const float inc_y = delta_y / (float) side_length;
+  const float inc_x = delta_x / (float)side_length;
+  const float inc_y = delta_y / (float)side_length;
 
   float current_x = x0;
   float current_y = y0;
 
-  for(int i = 0; i < side_length; i++){
-    draw_pixel(round(current_x), round(current_y), 0xFFFF0000);
+  for (int i = 0; i < side_length; i++) {
+    draw_pixel(round(current_x), round(current_y), color);
     current_x += inc_x;
     current_y += inc_y;
   }
@@ -135,5 +137,17 @@ void draw_rect(const int x, const int y, const int width, const int height,
     for (int x_it = x; x_it < x + width; x_it++) {
       draw_pixel(x_it, y_it, color);
     }
+  }
+}
+
+void draw_triangle(triangle_t triangle, bool wireframe, uint32_t color) {
+  if (wireframe) {
+    draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
+              triangle.points[1].y, color);
+    draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
+              triangle.points[2].y, color);
+    draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
+              triangle.points[0].y, color);
+    return;
   }
 }
