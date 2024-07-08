@@ -1,7 +1,6 @@
 #include "display.h"
 #include "mesh.h"
 #include "triangle.h"
-#include "utils.h"
 #include "vector.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
@@ -166,6 +165,10 @@ void render(void) {
     draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFF0000);
     draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFF0000);
     draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFF0000);
+
+    draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y);
+    draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y);
+    draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x, triangle.points[0].y);
   }
 
   render_color_buffer();

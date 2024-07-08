@@ -28,4 +28,10 @@ void destroy_window(void);
 void clear_color_buffer(uint32_t color);
 void render_color_buffer(void);
 
+void draw_grid(const int h, const int w, const int size, const uint32_t color);
+void draw_rect(const int x, const int y, const int width, const int height,
+               const uint32_t color);
+void draw_pixel(const int x, const int y, const uint32_t color);
+void draw_line(const int x0, const int y0, const int x1, const int y1);
+
 #endif // !DISPLAY_H
