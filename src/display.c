@@ -1,7 +1,10 @@
 #include "display.h"
+#include "triangle.h"
+#include "vector.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -139,6 +142,20 @@ void draw_rect(const int x, const int y, const int width, const int height,
   }
 }
 
+void swap(void *a, void *b, size_t size) {
+  void *tmp = malloc(size);
+  if (tmp != NULL) {
+    memcpy(tmp, a, size);
+    memcpy(a, b, size);
+    memcpy(b, tmp, size);
+    free(tmp);
+  }
+}
+
+void fill_flat_bottom_triangle(triangle_t t) {}
+
+void fill_flat_top_triangle(triangle_t t) {}
+
 void draw_triangle(triangle_t triangle, bool wireframe, uint32_t color) {
   if (wireframe) {
     draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
@@ -149,4 +166,51 @@ void draw_triangle(triangle_t triangle, bool wireframe, uint32_t color) {
               triangle.points[0].y, color);
     return;
   }
+
+  // order all the points
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (triangle.points[j].y > triangle.points[i].y) {
+        swap(&triangle.points[j], &triangle.points[i], sizeof(vec2_t));
+      }
+    }
+  }
+
+  const vec2_t *middle_point = &triangle.points[1];
+  const vec2_t *top_point = &triangle.points[2];
+  const vec2_t *bottom_point = &triangle.points[0];
+
+  // clunky debug
+  // printf("x0: %f, y0: %f\n", top_point->x, top_point->y);
+  // printf("x1: %f, y1: %f\n", middle_point->x, middle_point->y);
+  // printf("x2: %f, y2: %f\n", bottom_point->x, bottom_point->y);
+
+  // chegamos a esta formula pela similaridade de triangulos
+  const float Mx =
+      ((middle_point->y - top_point->y) / (float)(bottom_point->y - top_point->y)) *
+          (bottom_point->x - top_point->x) +
+      top_point->x;
+
+  // draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
+  //           triangle.points[1].y, color);
+  // draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
+  //           triangle.points[2].y, color);
+  // draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
+  //           triangle.points[0].y, color);
+
+  draw_line(Mx, middle_point->y, Mx, middle_point->y, 0xFF00FF00);
+
+  fill_flat_bottom_triangle(
+      (triangle_t){.points = {
+                       (vec2_t){.x = Mx, .y = middle_point->y},
+                       *middle_point,
+                       *bottom_point,
+                   }});
+
+  fill_flat_top_triangle(
+      (triangle_t){.points = {
+                       (vec2_t){.x = Mx, .y = middle_point->y},
+                       *middle_point,
+                       *top_point,
+                   }});
 }

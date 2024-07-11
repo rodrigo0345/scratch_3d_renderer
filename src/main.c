@@ -196,7 +196,7 @@ void render(void) {
 
   for (int i = 0; i < num_triangles; i++) {
     triangle_t triangle = triangles_to_render[i];
-    draw_triangle(triangle, true, 0xFFFFFFFF);
+    draw_triangle(triangle, false, 0xFFFFFFFF);
   }
 
   array_free(triangles_to_render);
