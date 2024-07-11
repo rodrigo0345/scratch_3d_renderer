@@ -18,9 +18,9 @@
 triangle_t* triangles_to_render = NULL;
 
 vec3_t cube_rotation = {.x = 0, .y = 0, .z = 0};
-vec3_t camera_position = {.x = 0, .y = 0, .z = -10};
+vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
-float fov_factor = 720;
+float fov_factor = 640;
 
 bool is_running = true;
 
@@ -94,6 +94,7 @@ vec3_t translate(vec3_t point, int x, int y, int z) {
   point.z += z;
   return point;
 }
+
 void update(void) {
 
   int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
@@ -125,7 +126,11 @@ void update(void) {
 
     triangle_t projected_triangle;
 
+    vec3_t transformed_vertices[3];
+
+    //////////////////////////////////
     // Apply transformations
+    //////////////////////////////////
     for (int j = 0; j < 3; j++) {
       vec3_t transformed_vertex = face_vertices[j];
 
@@ -135,10 +140,36 @@ void update(void) {
 
       // we need to rotate before translate because
       // the center of the rotation is always {0, 0, 0}
-      transformed_vertex =
-          translate(transformed_vertex, x_translate, 0, -1 * camera_position.z);
+      transformed_vertex.z += -5;
 
-      vec2_t projected_point = project(transformed_vertex);
+      transformed_vertices[j] = transformed_vertex;
+    }
+
+    //////////////////////////////////
+    // check back face culling
+    //////////////////////////////////
+    vec3_t vector_a = transformed_vertices[0];
+    vec3_t vector_b = transformed_vertices[1];
+    vec3_t vector_c = transformed_vertices[2];
+
+    vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+    vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+
+    vec3_t normal = vec3_cross(vector_ab, vector_ac);
+    vec3_t camera_ray = vec3_sub(camera_position, vector_a);
+
+    float result = vec3_dot(normal, camera_ray);
+
+    // este result determina se é para renderizar este triangulo
+    // ou não, se for negativo, significa que a superfice
+    // está a apontar para o lado oposto à camara
+    if(result < 0) continue;
+
+    //////////////////////////////////
+    // perform projection
+    //////////////////////////////////
+    for (int j = 0; j < 3; j++) {
+      vec2_t projected_point = project(transformed_vertices[j]);
 
       projected_point.x += (int)(window_width / 2);
       projected_point.y += (int)(window_height / 2);
@@ -155,7 +186,7 @@ void render(void) {
   // Loop all projected triangles and render them
   const int num_triangles = array_length(triangles_to_render); for (int i = 0; i < num_triangles; i++) {
     triangle_t triangle = triangles_to_render[i];
-    draw_triangle(triangle, true, 0xFFFF0000);
+    draw_triangle(triangle, true, 0xFFFFFFFF);
   }
 
   array_free(triangles_to_render);
