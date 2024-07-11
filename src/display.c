@@ -11,8 +11,8 @@ SDL_Renderer *renderer = NULL;
 uint32_t *color_buffer = NULL;
 SDL_Texture *color_buffer_texture = NULL;
 
-int window_height = 600;
-int window_width = 800;
+int window_height = 1080;
+int window_width = 1920;
 
 bool initialize_window(void) {
   // creating a window
@@ -82,21 +82,21 @@ void draw_pixel(const int x, const int y, const uint32_t color) {
 
 void draw_line(const int x0, const int y0, const int x1, const int y1,
                const uint32_t color) {
-  const int delta_x = (x1 - x0);
-  const int delta_y = (y1 - y0);
+  int delta_x = (x1 - x0);
+  int delta_y = (y1 - y0);
 
-  const int side_length = delta_x > delta_y ? abs(delta_x) : abs(delta_y);
+  int longest_side_length =
+      (abs(delta_x) >= abs(delta_y)) ? abs(delta_x) : abs(delta_y);
 
-  const float inc_x = delta_x / (float)side_length;
-  const float inc_y = delta_y / (float)side_length;
+  float x_inc = delta_x / (float)longest_side_length;
+  float y_inc = delta_y / (float)longest_side_length;
 
   float current_x = x0;
   float current_y = y0;
-
-  for (int i = 0; i < side_length; i++) {
+  for (int i = 0; i <= longest_side_length; i++) {
     draw_pixel(round(current_x), round(current_y), color);
-    current_x += inc_x;
-    current_y += inc_y;
+    current_x += x_inc;
+    current_y += y_inc;
   }
 }
 

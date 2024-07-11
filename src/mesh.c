@@ -5,6 +5,7 @@
 #include <bits/floatn-common.h>
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 mesh_t mesh = {.vertices = NULL, .mesh_faces = NULL, .rotation = {0, 0, 0}};
 
@@ -50,47 +51,35 @@ void free_resources(void) {
   free(color_buffer);
 }
 
-void load_obj_file_data(const char *filepath) {
-  FILE *fd;
+void load_obj_file_data(const char* filename) {
+    FILE* file;
+    file = fopen(filename, "r");
+    char line[1024];
 
-  if ((fd = fopen(filepath, "r")) == NULL) {
-    fprintf(stderr, "Obj file: %s not found!", filepath);
-    return;
-  }
-
-  fprintf(stdout, "Object loaded: %s", filepath);
-
-  char *line_buffer = malloc(sizeof(char) * 1024);
-  do {
-    fgets(line_buffer, 1024, fd);
-    if (line_buffer == NULL)
-      break;
-
-    char first_character = line_buffer[0];
-
-    switch (first_character) {
-    case 'v':
-      // load vertex
-      vec3_t vertex = {.x = .0f, .y = .0f, .z = .0f};
-
-      sscanf(line_buffer, "%*c %f %f %f", &vertex.x, &vertex.y, &vertex.z);
-      array_push(mesh.vertices, vertex);
-      break;
-    case 'f':
-      // load vertex index
-      face_t vertex_index = {.a = 0, .b = 0, .c = 0};
-
-      sscanf(line_buffer, "%*c %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d",
-             &vertex_index.a, &vertex_index.b, &vertex_index.c);
-
-      array_push(mesh.mesh_faces, vertex_index);
-
-      break;
-      break;
-    default:
-      continue;
+    while (fgets(line, 1024, file)) {
+        // Vertex information
+        if (strncmp(line, "v ", 2) == 0) {
+            vec3_t vertex;
+            sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+            array_push(mesh.vertices, vertex);
+        }
+        // Face information
+        if (strncmp(line, "f ", 2) == 0) {
+            int vertex_indices[3];
+            int texture_indices[3];
+            int normal_indices[3];
+            sscanf(
+                line, "f %d/%d/%d %d/%d/%d %d/%d/%d",
+                &vertex_indices[0], &texture_indices[0], &normal_indices[0], 
+                &vertex_indices[1], &texture_indices[1], &normal_indices[1], 
+                &vertex_indices[2], &texture_indices[2], &normal_indices[2]
+            ); 
+            face_t face = {
+                .a = vertex_indices[0],
+                .b = vertex_indices[1],
+                .c = vertex_indices[2]
+            };
+            array_push(mesh.mesh_faces, face);
+        }
     }
-  } while (!feof(fd));
-
-  fclose(fd);
 }
