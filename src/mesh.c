@@ -1,6 +1,9 @@
 #include "mesh.h"
 #include "array.h"
 #include "display.h"
+#include "triangle.h"
+#include <bits/floatn-common.h>
+#include <math.h>
 #include <stdio.h>
 
 mesh_t mesh = {.vertices = NULL, .mesh_faces = NULL, .rotation = {0, 0, 0}};
@@ -41,8 +44,53 @@ void load_cube_mesh_data(void) {
   }
 }
 
-void free_resources(void){
+void free_resources(void) {
   array_free(mesh.vertices);
   array_free(mesh.mesh_faces);
   free(color_buffer);
+}
+
+void load_obj_file_data(const char *filepath) {
+  FILE *fd;
+
+  if ((fd = fopen(filepath, "r")) == NULL) {
+    fprintf(stderr, "Obj file: %s not found!", filepath);
+    return;
+  }
+
+  fprintf(stdout, "Object loaded: %s", filepath);
+
+  char *line_buffer = malloc(sizeof(char) * 1024);
+  do {
+    fgets(line_buffer, 1024, fd);
+    if (line_buffer == NULL)
+      break;
+
+    char first_character = line_buffer[0];
+
+    switch (first_character) {
+    case 'v':
+      // load vertex
+      vec3_t vertex = {.x = .0f, .y = .0f, .z = .0f};
+
+      sscanf(line_buffer, "%*c %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+      array_push(mesh.vertices, vertex);
+      break;
+    case 'f':
+      // load vertex index
+      face_t vertex_index = {.a = 0, .b = 0, .c = 0};
+
+      sscanf(line_buffer, "%*c %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d",
+             &vertex_index.a, &vertex_index.b, &vertex_index.c);
+
+      array_push(mesh.mesh_faces, vertex_index);
+
+      break;
+      break;
+    default:
+      continue;
+    }
+  } while (!feof(fd));
+
+  fclose(fd);
 }

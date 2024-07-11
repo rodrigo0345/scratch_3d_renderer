@@ -46,7 +46,6 @@ bool initialize_window(void) {
     fprintf(stderr, "Error creating SDL Renderer");
     return false;
   }
-
   // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 
   return true;
@@ -119,7 +118,7 @@ void draw_grid(const int h, const int w, const int size, const uint32_t color) {
 
     // Iterate over each column in the current row
     for (int x = 0; x < window_width; x++) {
-      // Check if the current column should have a vertical line
+
       if (fill_vborder) {
         draw_pixel(x, y, color);
         fill_vborder--;

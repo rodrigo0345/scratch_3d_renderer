@@ -20,7 +20,7 @@ triangle_t* triangles_to_render = NULL;
 vec3_t cube_rotation = {.x = 0, .y = 0, .z = 0};
 vec3_t camera_position = {.x = 0, .y = 0, .z = -10};
 
-float fov_factor = 640;
+float fov_factor = 720;
 
 bool is_running = true;
 
@@ -43,7 +43,8 @@ void setup(void) {
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
 
-  load_cube_mesh_data();
+  const char* filepath = "assets/f22.obj";
+  load_obj_file_data(filepath);
 }
 
 // this was just for fun
@@ -93,7 +94,6 @@ vec3_t translate(vec3_t point, int x, int y, int z) {
   point.z += z;
   return point;
 }
-
 void update(void) {
 
   int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
@@ -108,19 +108,19 @@ void update(void) {
   // initializa the array of triangles to render
   triangles_to_render = NULL;
 
-  mesh.rotation.y += 0.01;
+  // mesh.rotation.y += 0.01;
   mesh.rotation.x += 0.01;
-  mesh.rotation.z += 0.01;
+  mesh.rotation.z = -3.1416;
 
   const int n_faces = array_length(mesh.mesh_faces);
 
   for (int i = 0; i < n_faces; i++) {
 
-    face_t curr_face = mesh_faces[i];
+    face_t curr_face = mesh.mesh_faces[i];
     vec3_t face_vertices[3] = {
-        mesh.vertices[curr_face.a],
-        mesh.vertices[curr_face.b],
-        mesh.vertices[curr_face.c],
+        mesh.vertices[curr_face.a - 1],
+        mesh.vertices[curr_face.b - 1],
+        mesh.vertices[curr_face.c - 1],
     };
 
     triangle_t projected_triangle;
@@ -148,31 +148,12 @@ void update(void) {
 
     array_push(triangles_to_render, projected_triangle);
   }
-
-  // for (int i = 0; i < N_POINTS; i++) {
-  //   vec3_t point = cube_points[i];
-
-  //   point = vec3_rotate_y(point, cube_rotation.y);
-  //   point = vec3_rotate_x(point, cube_rotation.x);
-  //   point = vec3_rotate_z(point, cube_rotation.z);
-
-  //   // we need to rotate before translate because
-  // // the center of the rotation is always {0, 0, 0}
-  //   point = translate(point, x_translate, 0, -1 * camera_position.z);
-
-  //   const vec2_t projected_point = project(point);
-
-  //   // save projected point
-  //   projected_points[i] = projected_point;
-  // }
 }
 
 void render(void) {
 
   // Loop all projected triangles and render them
-  const int num_triangles = array_length(triangles_to_render);
-
-  for (int i = 0; i < num_triangles; i++) {
+  const int num_triangles = array_length(triangles_to_render); for (int i = 0; i < num_triangles; i++) {
     triangle_t triangle = triangles_to_render[i];
     draw_triangle(triangle, true, 0xFFFF0000);
   }
