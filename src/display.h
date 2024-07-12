@@ -51,5 +51,6 @@ void draw_line(const int x0, const int y0, const int x1, const int y1, color_t c
 void draw_triangle(
   triangle_t triangle, color_t color, Draw_mode draw_mode
 );
+void swap(void *a, void *b, size_t size);
 
 #endif // !DISPLAY_H

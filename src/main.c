@@ -207,7 +207,6 @@ void update(void) {
       }
     }
 
-
     vec2_t projected_points[3];
 
     // Loop all three vertices to perform projection
@@ -221,17 +220,30 @@ void update(void) {
     }
 
     triangle_t projected_triangle = {
-      .points = {
-       {projected_points[0].x, projected_points[0].y},
-       {projected_points[1].x, projected_points[1].y},
-       {projected_points[2].x, projected_points[2].y},
-      },
-      .color = mesh_face.color
-    };
-
+        .points =
+            {
+                {projected_points[0].x, projected_points[0].y},
+                {projected_points[1].x, projected_points[1].y},
+                {projected_points[2].x, projected_points[2].y},
+            },
+        .color = mesh_face.color,
+        .avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z +
+                      transformed_vertices[2].z) /
+                     3};
 
     // Save the projected triangle in the array of triangles to render
     array_push(triangles_to_render, projected_triangle);
+  }
+
+  // TODO: sort the triangles to render with the avg_depth (Painter's Algo)
+  const int triangles_len = array_length(triangles_to_render);
+  for (int i = 0; i < triangles_len; i++) {
+    for (int j = 0; j < triangles_len; j++) {
+      if (triangles_to_render[i].avg_depth > triangles_to_render[j].avg_depth) {
+        swap(&triangles_to_render[i], &triangles_to_render[j],
+             sizeof(triangle_t));
+      }
+    }
   }
 }
 
