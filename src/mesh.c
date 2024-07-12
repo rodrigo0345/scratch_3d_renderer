@@ -11,18 +11,25 @@ mesh_t mesh = {.vertices = NULL, .mesh_faces = NULL, .rotation = {0, 0, 0}};
 
 // the order of the points matters!!!
 face_t mesh_faces[N_CUBE_FACES] = {
-    {.a = 0, .b = 1, .c = 2}, {.a = 0, .b = 2, .c = 3}, // Front face
+    {.a = 1, .b = 2, .c = 3, .color = 0xFFFF0000},
+    {.a = 1, .b = 3, .c = 4, .color = 0xFFFF0000}, // Front face
 
-    {.a = 3, .b = 2, .c = 4}, {.a = 3, .b = 4, .c = 5}, // Right face
+    {.a = 4, .b = 3, .c = 5, .color = 0xFF00FF00},
+    {.a = 4, .b = 5, .c = 6, .color = 0xFF00FF00}, // Right face
 
-    {.a = 5, .b = 4, .c = 6}, {.a = 5, .b = 6, .c = 7}, // Back face
+    {.a = 6, .b = 5, .c = 7, .color = 0xFFFF00FF},
+    {.a = 6, .b = 7, .c = 8, .color = 0xFFFF00FF}, // Back face
 
-    {.a = 7, .b = 6, .c = 1}, {.a = 7, .b = 1, .c = 0}, // Left face
+    {.a = 8, .b = 7, .c = 2, .color = 0xFFFF00FF},
+    {.a = 8, .b = 2, .c = 1, .color = 0xFFFF00FF}, // Left face
 
-    {.a = 1, .b = 6, .c = 4}, {.a = 1, .b = 4, .c = 2}, // Top face
+    {.a = 2, .b = 7, .c = 5, .color = 0xFFFF0000},
+    {.a = 2, .b = 5, .c = 3, .color = 0xFFFF0000}, // Top face
 
-    {.a = 5, .b = 7, .c = 0}, {.a = 5, .b = 0, .c = 3} // Bottom face
+    {.a = 6, .b = 8, .c = 1, .color = 0xFFFFF000},
+    {.a = 6, .b = 1, .c = 4, .color = 0xFFFFF000} // Bottom face
 };
+
 
 vec3_t mesh_vertices[N_CUBE_VERTICES] = {
     {.x = -1, .y = -1, .z = -1}, // 0
@@ -46,7 +53,8 @@ void load_cube_mesh_data(void) {
 }
 
 void free_resources(void) {
-  if(mesh.vertices == NULL || mesh.mesh_faces == NULL) return;
+  if (mesh.vertices == NULL || mesh.mesh_faces == NULL)
+    return;
 
   array_free(mesh.vertices);
   array_free(mesh.mesh_faces);
@@ -58,7 +66,7 @@ void load_obj_file_data(const char *filename) {
   file = fopen(filename, "r");
   char line[1024];
 
-  if(mesh.vertices != NULL || mesh.mesh_faces != NULL) {
+  if (mesh.vertices != NULL || mesh.mesh_faces != NULL) {
     array_free(mesh.vertices);
     array_free(mesh.mesh_faces);
     mesh.mesh_faces = NULL;

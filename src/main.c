@@ -43,10 +43,11 @@ void setup(void) {
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
 
-  const char *filepath = "assets/f22.obj";
+  // const char *filepath = "assets/f22.obj";
   // const char* filepath = "assets/cube.obj";
   // const char* filepath = "assets/tank.obj";
-  load_obj_file_data(filepath);
+  // load_obj_file_data(filepath);
+  load_cube_mesh_data();
 }
 
 // this was just for fun
@@ -206,19 +207,28 @@ void update(void) {
       }
     }
 
-    triangle_t projected_triangle;
+
+    vec2_t projected_points[3];
 
     // Loop all three vertices to perform projection
     for (int j = 0; j < 3; j++) {
       // Project the current vertex
-      vec2_t projected_point = project(transformed_vertices[j]);
+      projected_points[j] = project(transformed_vertices[j]);
 
       // Scale and translate the projected points to the middle of the screen
-      projected_point.x += (int)(window_width / 2);
-      projected_point.y += (int)(window_height / 2);
-
-      projected_triangle.points[j] = projected_point;
+      projected_points[j].x += (int)(window_width / 2);
+      projected_points[j].y += (int)(window_height / 2);
     }
+
+    triangle_t projected_triangle = {
+      .points = {
+       {projected_points[0].x, projected_points[0].y},
+       {projected_points[1].x, projected_points[1].y},
+       {projected_points[2].x, projected_points[2].y},
+      },
+      .color = mesh_face.color
+    };
+
 
     // Save the projected triangle in the array of triangles to render
     array_push(triangles_to_render, projected_triangle);
@@ -232,7 +242,7 @@ void render(void) {
 
   for (int i = 0; i < num_triangles; i++) {
     triangle_t triangle = triangles_to_render[i];
-    draw_triangle(triangle, 0xFFFFFFFF, mode);
+    draw_triangle(triangle, triangle.color, mode);
   }
 
   array_free(triangles_to_render);

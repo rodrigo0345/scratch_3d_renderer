@@ -20,6 +20,7 @@ typedef enum {
   OFF
 } Culling_mode;
 
+typedef uint32_t color_t;
 
 // how much time each frame needs to take
 // we then need to tell the cpu to wait this time
@@ -42,13 +43,13 @@ void destroy_window(void);
 void clear_color_buffer(uint32_t color);
 void render_color_buffer(void);
 
-void draw_grid(const int h, const int w, const int size, const uint32_t color);
+void draw_grid(const int h, const int w, const int size, const color_t color);
 void draw_rect(const int x, const int y, const int width, const int height,
-               const uint32_t color);
+               const color_t color);
 void draw_pixel(const int x, const int y, const uint32_t color);
-void draw_line(const int x0, const int y0, const int x1, const int y1, uint32_t color);
+void draw_line(const int x0, const int y0, const int x1, const int y1, color_t color);
 void draw_triangle(
-  triangle_t triangle, uint32_t color, Draw_mode draw_mode
+  triangle_t triangle, color_t color, Draw_mode draw_mode
 );
 
 #endif // !DISPLAY_H
