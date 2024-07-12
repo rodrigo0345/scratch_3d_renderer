@@ -214,15 +214,18 @@ void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2,
   }
 }
 
-void draw_triangle(triangle_t triangle, bool wireframe, uint32_t color) {
-  if (wireframe) {
+void draw_triangle(triangle_t triangle, uint32_t color, Draw_mode draw_mode) {
+
+  if (draw_mode == WIRE || draw_mode == WIRE_DOT || draw_mode == SOLID_WIRE) {
     draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
               triangle.points[1].y, 0x0000FF00);
     draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
               triangle.points[2].y, 0x00FF0000);
     draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
               triangle.points[0].y, 0x000000FF);
+    if(draw_mode == WIRE) return;
   }
+
   int x0 = triangle.points[0].x, y0 = triangle.points[0].y;
   int x1 = triangle.points[1].x, y1 = triangle.points[1].y;
   int x2 = triangle.points[2].x, y2 = triangle.points[2].y;
@@ -240,6 +243,12 @@ void draw_triangle(triangle_t triangle, bool wireframe, uint32_t color) {
     swap(&x0, &x1, sizeof(int));
   }
 
+  if(draw_mode == WIRE_DOT){
+    // TODO:
+    return;
+  }
+
+  // para evitar dividir por 0
   if (y1 == y2) {
     // Draw flat-bottom triangle
     fill_flat_bottom_triangle(x0, y0, x1, y1, x2, y2, color);
@@ -257,11 +266,11 @@ void draw_triangle(triangle_t triangle, bool wireframe, uint32_t color) {
     // Draw flat-top triangle
     fill_flat_top_triangle(x1, y1, Mx, My, x2, y2, color);
 
-    draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
-              triangle.points[1].y, 0xFFFFFFFF);
-    draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
-              triangle.points[2].y, 0xFFFFFFFF);
-    draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
-              triangle.points[0].y, 0xFFFFFFFF);
+    // draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
+    //           triangle.points[1].y, 0xFFFFFFFF);
+    // draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
+    //           triangle.points[2].y, 0xFFFFFFFF);
+    // draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
+    //           triangle.points[0].y, 0xFFFFFFFF);
   }
 }

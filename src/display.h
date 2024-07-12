@@ -8,6 +8,19 @@
 
 #define FPS 50 
 
+typedef enum {
+  WIRE_DOT,
+  WIRE,
+  SOLID,
+  SOLID_WIRE,
+} Draw_mode;
+
+typedef enum {
+  ON,
+  OFF
+} Culling_mode;
+
+
 // how much time each frame needs to take
 // we then need to tell the cpu to wait this time
 #define FRAME_TARGET_TIME (1000 / FPS)
@@ -35,7 +48,7 @@ void draw_rect(const int x, const int y, const int width, const int height,
 void draw_pixel(const int x, const int y, const uint32_t color);
 void draw_line(const int x0, const int y0, const int x1, const int y1, uint32_t color);
 void draw_triangle(
-  triangle_t triangle, bool wireframe, uint32_t color
+  triangle_t triangle, uint32_t color, Draw_mode draw_mode
 );
 
 #endif // !DISPLAY_H
