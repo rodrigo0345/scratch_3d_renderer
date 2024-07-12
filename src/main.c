@@ -43,9 +43,9 @@ void setup(void) {
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
 
-  const char *filepath = "assets/f22.obj";
+  // const char *filepath = "assets/f22.obj";
   // const char* filepath = "assets/cube.obj";
-  // const char* filepath = "assets/tank.obj";
+  const char* filepath = "assets/tank.obj";
   load_obj_file_data(filepath);
 }
 
@@ -136,7 +136,7 @@ void update(void) {
       transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
       // Translate the vertices away from the camera
-      transformed_vertex.z += 5;
+      transformed_vertex.z += 10;
 
       // Save transformed vertex in the array of transformed vertices
       transformed_vertices[j] = transformed_vertex;
