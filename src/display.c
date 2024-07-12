@@ -14,8 +14,8 @@ SDL_Renderer *renderer = NULL;
 uint32_t *color_buffer = NULL;
 SDL_Texture *color_buffer_texture = NULL;
 
-int window_height = 1080;
-int window_width = 1920;
+int window_height = 600;
+int window_width = 800;
 
 bool initialize_window(void) {
   // creating a window
@@ -152,65 +152,116 @@ void swap(void *a, void *b, size_t size) {
   }
 }
 
-void fill_flat_bottom_triangle(triangle_t t) {}
+///////////////////////////////////////////////////////////////////////////////
+// Draw a filled a triangle with a flat bottom
+///////////////////////////////////////////////////////////////////////////////
+//
+//        (x0,y0)
+//          / \
+//         /   \
+//        /     \
+//       /       \
+//      /         \
+//  (x1,y1)------(x2,y2)
+//
+///////////////////////////////////////////////////////////////////////////////
+void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2,
+                               uint32_t color) {
+  // Find the two slopes (two triangle legs)
+  float inv_slope_1 = (float)(x1 - x0) / (y1 - y0);
+  float inv_slope_2 = (float)(x2 - x0) / (y2 - y0);
 
-void fill_flat_top_triangle(triangle_t t) {}
+  // Start x_start and x_end from the top vertex (x0,y0)
+  float x_start = x0;
+  float x_end = x0;
+
+  // Loop all the scanlines from top to bottom
+  for (int y = y0; y <= y2; y++) {
+    draw_line(x_start, y, x_end, y, color);
+    x_start += inv_slope_1;
+    x_end += inv_slope_2;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Draw a filled a triangle with a flat top
+///////////////////////////////////////////////////////////////////////////////
+//
+//  (x0,y0)------(x1,y1)
+//      \         /
+//       \       /
+//        \     /
+//         \   /
+//          \ /
+//        (x2,y2)
+//
+///////////////////////////////////////////////////////////////////////////////
+void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2,
+                            uint32_t color) {
+  // Find the two slopes (two triangle legs)
+  float inv_slope_1 = (float)(x2 - x0) / (y2 - y0);
+  float inv_slope_2 = (float)(x2 - x1) / (y2 - y1);
+
+  // Start x_start and x_end from the bottom vertex (x2,y2)
+  float x_start = x2;
+  float x_end = x2;
+
+  // Loop all the scanlines from bottom to top
+  for (int y = y2; y >= y0; y--) {
+    draw_line(x_start, y, x_end, y, color);
+    x_start -= inv_slope_1;
+    x_end -= inv_slope_2;
+  }
+}
 
 void draw_triangle(triangle_t triangle, bool wireframe, uint32_t color) {
   if (wireframe) {
     draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
-              triangle.points[1].y, color);
+              triangle.points[1].y, 0x0000FF00);
     draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
-              triangle.points[2].y, color);
+              triangle.points[2].y, 0x00FF0000);
     draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
-              triangle.points[0].y, color);
-    return;
+              triangle.points[0].y, 0x000000FF);
+  }
+  int x0 = triangle.points[0].x, y0 = triangle.points[0].y;
+  int x1 = triangle.points[1].x, y1 = triangle.points[1].y;
+  int x2 = triangle.points[2].x, y2 = triangle.points[2].y;
+
+  if (y0 > y1) {
+    swap(&y0, &y1, sizeof(int));
+    swap(&x0, &x1, sizeof(int));
+  }
+  if (y1 > y2) {
+    swap(&y1, &y2, sizeof(int));
+    swap(&x1, &x2, sizeof(int));
+  }
+  if (y0 > y1) {
+    swap(&y0, &y1, sizeof(int));
+    swap(&x0, &x1, sizeof(int));
   }
 
-  // order all the points
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      if (triangle.points[j].y > triangle.points[i].y) {
-        swap(&triangle.points[j], &triangle.points[i], sizeof(vec2_t));
-      }
-    }
+  if (y1 == y2) {
+    // Draw flat-bottom triangle
+    fill_flat_bottom_triangle(x0, y0, x1, y1, x2, y2, color);
+  } else if (y0 == y1) {
+    // Draw flat-top triangle
+    fill_flat_top_triangle(x0, y0, x1, y1, x2, y2, color);
+  } else {
+    // Calculate the new vertex (Mx,My) using triangle similarity
+    int My = y1;
+    int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+
+    // Draw flat-bottom triangle
+    fill_flat_bottom_triangle(x0, y0, Mx, My, x1, y1, color);
+
+    // Draw flat-top triangle
+    fill_flat_top_triangle(x1, y1, Mx, My, x2, y2, color);
+
+    draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
+              triangle.points[1].y, 0xFFFFFFFF);
+    draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
+              triangle.points[2].y, 0xFFFFFFFF);
+    draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
+              triangle.points[0].y, 0xFFFFFFFF);
   }
-
-  const vec2_t *middle_point = &triangle.points[1];
-  const vec2_t *top_point = &triangle.points[2];
-  const vec2_t *bottom_point = &triangle.points[0];
-
-  // clunky debug
-  // printf("x0: %f, y0: %f\n", top_point->x, top_point->y);
-  // printf("x1: %f, y1: %f\n", middle_point->x, middle_point->y);
-  // printf("x2: %f, y2: %f\n", bottom_point->x, bottom_point->y);
-
-  // chegamos a esta formula pela similaridade de triangulos
-  const float Mx =
-      ((middle_point->y - top_point->y) / (float)(bottom_point->y - top_point->y)) *
-          (bottom_point->x - top_point->x) +
-      top_point->x;
-
-  // draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
-  //           triangle.points[1].y, color);
-  // draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
-  //           triangle.points[2].y, color);
-  // draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
-  //           triangle.points[0].y, color);
-
-  draw_line(Mx, middle_point->y, Mx, middle_point->y, 0xFF00FF00);
-
-  fill_flat_bottom_triangle(
-      (triangle_t){.points = {
-                       (vec2_t){.x = Mx, .y = middle_point->y},
-                       *middle_point,
-                       *bottom_point,
-                   }});
-
-  fill_flat_top_triangle(
-      (triangle_t){.points = {
-                       (vec2_t){.x = Mx, .y = middle_point->y},
-                       *middle_point,
-                       *top_point,
-                   }});
 }
