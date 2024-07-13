@@ -1,5 +1,6 @@
 #include "array.h"
 #include "display.h"
+#include "matrix.h"
 #include "mesh.h"
 #include "triangle.h"
 #include "vector.h"
@@ -10,6 +11,7 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_video.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -149,6 +151,21 @@ void update(void) {
   mesh.rotation.y += 0.01;
   mesh.rotation.z = 3.1416;
 
+  mesh.scale.x += 0.002;
+  mesh.scale.y += 0.001;
+
+  mesh.translation.z = 5;
+
+  mat4_t scale_matrix =
+      mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+
+  mat4_t translation_matrix = mat4_make_translation(
+      mesh.translation.x, mesh.translation.y, mesh.translation.z);
+
+  mat4_t rotation_matrix_x = mat4_make_rotation(mesh.rotation.x, X);
+  mat4_t rotation_matrix_y = mat4_make_rotation(mesh.rotation.y, Y);
+  mat4_t rotation_matrix_z = mat4_make_rotation(mesh.rotation.z, Z);
+
   // Loop all triangle faces of our mesh
   int num_faces = array_length(mesh.mesh_faces);
   for (int i = 0; i < num_faces; i++) {
@@ -159,18 +176,21 @@ void update(void) {
     face_vertices[1] = mesh.vertices[mesh_face.b - 1];
     face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-    vec3_t transformed_vertices[3];
+    vec4_t transformed_vertices[3];
 
     // Loop all three vertices of this current face and apply transformations
     for (int j = 0; j < 3; j++) {
-      vec3_t transformed_vertex = face_vertices[j];
+      vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
-      transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x);
-      transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y);
-      transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
+      // create a world matrix
+      mat4_t world_matrix = mat4_identity();
+      world_matrix = mat4_mul_mat4(scale_matrix, world_matrix);
+      world_matrix = mat4_mul_mat4(rotation_matrix_x, world_matrix);
+      world_matrix = mat4_mul_mat4(rotation_matrix_y, world_matrix);
+      world_matrix = mat4_mul_mat4(rotation_matrix_z, world_matrix);
+      world_matrix = mat4_mul_mat4(translation_matrix, world_matrix);
 
-      // Translate the vertices away from the camera
-      transformed_vertex.z += 10;
+      transformed_vertex = mat4_mul_vec4(world_matrix, transformed_vertex);
 
       // Save transformed vertex in the array of transformed vertices
       transformed_vertices[j] = transformed_vertex;
@@ -179,9 +199,9 @@ void update(void) {
     if (culling != OFF) {
 
       // // Check backface culling
-      vec3_t vector_a = transformed_vertices[0]; /*   A   */
-      vec3_t vector_b = transformed_vertices[1]; /*  / \  */
-      vec3_t vector_c = transformed_vertices[2]; /* C---B */
+      vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]); /*   A   */
+      vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]); /*  / \  */
+      vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]); /* C---B */
 
       // Get the vector subtraction of B-A and C-A
       vec3_t vector_ab = vec3_sub(vector_b, vector_a);
@@ -212,7 +232,7 @@ void update(void) {
     // Loop all three vertices to perform projection
     for (int j = 0; j < 3; j++) {
       // Project the current vertex
-      projected_points[j] = project(transformed_vertices[j]);
+      projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]));
 
       // Scale and translate the projected points to the middle of the screen
       projected_points[j].x += (int)(window_width / 2);
@@ -238,8 +258,8 @@ void update(void) {
   // TODO: sort the triangles to render with the avg_depth (Painter's Algo)
   const int triangles_len = array_length(triangles_to_render);
   for (int i = 0; i < triangles_len; i++) {
-    for (int j = 0; j < triangles_len; j++) {
-      if (triangles_to_render[i].avg_depth > triangles_to_render[j].avg_depth) {
+    for (int j = i; j < triangles_len; j++) {
+      if (triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth) {
         swap(&triangles_to_render[i], &triangles_to_render[j],
              sizeof(triangle_t));
       }

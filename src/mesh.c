@@ -3,11 +3,14 @@
 #include "display.h"
 #include "triangle.h"
 #include <bits/floatn-common.h>
-#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
-mesh_t mesh = {.vertices = NULL, .mesh_faces = NULL, .rotation = {0, 0, 0}};
+mesh_t mesh = {.vertices = NULL,
+               .mesh_faces = NULL,
+               .rotation = {0, 0, 0},
+               .scale = {1, 1, 1},
+               .translation = {0, 0, 0}};
 
 // the order of the points matters!!!
 face_t mesh_faces[N_CUBE_FACES] = {
@@ -29,7 +32,6 @@ face_t mesh_faces[N_CUBE_FACES] = {
     {.a = 6, .b = 8, .c = 1, .color = 0xFFFFF000},
     {.a = 6, .b = 1, .c = 4, .color = 0xFFFFF000} // Bottom face
 };
-
 
 vec3_t mesh_vertices[N_CUBE_VERTICES] = {
     {.x = -1, .y = -1, .z = -1}, // 0
