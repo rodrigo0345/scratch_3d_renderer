@@ -51,6 +51,5 @@ While the project is running, you can use the following commands:
 
 Here are some examples of what the engine can do:
 
-![](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22.mov)
-![f22-shading](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22-shading.png)
+[![Demo F22](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22-shading.png)](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22.mov)
 ![tank](https://github.com/rodrigo0345/c_renderer/blob/main/assets/tank.png)
