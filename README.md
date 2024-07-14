@@ -47,10 +47,6 @@ While the project is running, you can use the following commands:
 - The engine uses a simple C array for rasterization, making it lightweight and efficient.
 - It currently supports basic 3D object loading and rendering with options for wireframe, filled triangles, and combined modes.
 
-## Sources
-
-https://courses.pikuma.com/
-
 ## Demo
 
 Here are some examples of what the engine can do:
