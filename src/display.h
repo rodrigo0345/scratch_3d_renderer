@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define FPS 50 
+#define FPS 60 
 
 typedef enum {
   WIRE_DOT,

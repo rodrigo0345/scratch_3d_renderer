@@ -2,14 +2,6 @@
 
 Welcome to the Cool Rendering Engine! This project was built from scratch and uses a simple C array as its core rasterization buffer. It features real-time 3D rendering with basic lighting, shading, and object loading.
 
-## Demo
-
-Here are some examples of what the engine can do:
-
-![f22](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22.png)
-![tank](https://github.com/rodrigo0345/c_renderer/blob/main/assets/tank.png)
-![f22-shading](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22-shading.png)
-
 ## Installation
 
 To get started with the Cool Rendering Engine, you'll need to install `SDL2` which is used for painting the pixels on the screen and nothing more.
@@ -59,3 +51,11 @@ While the project is running, you can use the following commands:
 
 https://courses.pikuma.com/
 
+## Demo
+
+Here are some examples of what the engine can do:
+
+![f22](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22.png)
+![tank](https://github.com/rodrigo0345/c_renderer/blob/main/assets/tank.png)
+![f22-shading](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22-shading.png)
+![](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22-shading.png)

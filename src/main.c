@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_mouse.h>
 #include <SDL2/SDL_pixels.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_timer.h>
@@ -33,6 +34,9 @@ light_t light = {.direction = {
                      .y = 0,
                      .z = 1,
                  }};
+
+int mouse_x = .0f;
+int mouse_y = .0f;
 
 void setup(void) {
   color_buffer =
@@ -74,6 +78,8 @@ Culling_mode culling = OFF;
 void process_input(void) {
   SDL_Event event;
   SDL_PollEvent(&event);
+  SDL_GetMouseState(&mouse_x, &mouse_y);
+
 
   switch (event.type) {
   case SDL_QUIT:
@@ -142,9 +148,8 @@ void update(void) {
   // Initialize the array of triangles to render
   triangles_to_render = NULL;
 
-  mesh.rotation.x += 0.03;
-  mesh.rotation.y += 0.02;
-  mesh.rotation.z = 0.1;
+  mesh.rotation.y = .04f;
+  mesh.rotation.z += 0.01;
 
   // mesh.scale.x += 0.002;
   // mesh.scale.y += 0.001;
@@ -224,6 +229,9 @@ void update(void) {
       // scale into the view
       projected_points[j].x *= window_width / 2.0f;
       projected_points[j].y *= window_height / 2.0f;
+
+      // Invert the y values to account for flipped screen y coordenate
+      projected_points[j].y *= -1;
 
       // translate the projected points to the middle of the screen
       projected_points[j].x += (int)(window_width / 2.0f);
