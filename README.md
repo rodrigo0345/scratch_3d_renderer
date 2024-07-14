@@ -12,7 +12,7 @@ Here are some examples of what the engine can do:
 
 ## Installation
 
-To get started with the Cool Rendering Engine, you'll need to install `SDL2` which is used for rendering the graphics.
+To get started with the Cool Rendering Engine, you'll need to install `SDL2` which is used for painting the pixels on the screen and nothing more.
 
 ### Installing SDL2
 
