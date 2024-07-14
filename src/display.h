@@ -49,7 +49,7 @@ void draw_rect(const int x, const int y, const int width, const int height,
 void draw_pixel(const int x, const int y, const uint32_t color);
 void draw_line(const int x0, const int y0, const int x1, const int y1, color_t color);
 void draw_triangle(
-  triangle_t triangle, color_t color, Draw_mode draw_mode
+  triangle_2d_t triangle, color_t color, Draw_mode draw_mode
 );
 void swap(void *a, void *b, size_t size);
 

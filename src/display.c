@@ -214,7 +214,7 @@ void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2,
   }
 }
 
-void draw_triangle(triangle_t triangle, uint32_t color, Draw_mode draw_mode) {
+void draw_triangle(triangle_2d_t triangle, uint32_t color, Draw_mode draw_mode) {
 
 
   int x0 = triangle.points[0].x, y0 = triangle.points[0].y;

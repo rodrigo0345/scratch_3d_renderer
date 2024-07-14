@@ -1,5 +1,6 @@
 #include "array.h"
 #include "display.h"
+#include "light.h"
 #include "matrix.h"
 #include "mesh.h"
 #include "triangle.h"
@@ -17,16 +18,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-triangle_t *triangles_to_render = NULL;
+triangle_2d_t *triangles_to_render = NULL;
 
-vec3_t cube_rotation = {.x = 0, .y = 0, .z = 0};
 vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
-
-float fov_factor = 640;
 
 bool is_running = true;
 
+mat4_t proj_matrix;
+
 uint32_t previous_frame_time = 0;
+
+light_t light = {.direction = {
+                     .x = 0.3,
+                     .y = 0,
+                     .z = 1,
+                 }};
 
 void setup(void) {
   color_buffer =
@@ -45,11 +51,18 @@ void setup(void) {
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
 
-  // const char *filepath = "assets/f22.obj";
+  // init the perspective matrix
+  float fov = 3.141549 / 3; // 60 deg
+  float aspect_ratio = window_height / (float)window_width;
+  float znear = 0.1f;
+  float zfar = 100.0f;
+  proj_matrix = mat4_make_perpective(fov, aspect_ratio, znear, zfar);
+
+  const char *filepath = "assets/f22.obj";
   // const char* filepath = "assets/cube.obj";
   // const char* filepath = "assets/tank.obj";
-  // load_obj_file_data(filepath);
-  load_cube_mesh_data();
+  load_obj_file_data(filepath);
+  // load_cube_mesh_data();
 }
 
 // this was just for fun
@@ -108,24 +121,6 @@ void process_input(void) {
   }
 }
 
-// ortographic
-vec2_t project_ortographic(vec3_t point) {
-  vec2_t projected_point = {
-      .x = fov_factor * point.x,
-      .y = fov_factor * point.y,
-  };
-  return projected_point;
-}
-
-// perspective
-vec2_t project(vec3_t point) {
-  vec2_t projected_point = {
-      .x = (fov_factor * point.x) / point.z,
-      .y = (fov_factor * point.y) / point.z,
-  };
-  return projected_point;
-}
-
 vec3_t translate(vec3_t point, int x, int y, int z) {
   point.x += x;
   point.y += y;
@@ -147,12 +142,12 @@ void update(void) {
   // Initialize the array of triangles to render
   triangles_to_render = NULL;
 
-  mesh.rotation.x = 1.01;
-  mesh.rotation.y += 0.01;
-  mesh.rotation.z = 3.1416;
+  mesh.rotation.x += 0.03;
+  mesh.rotation.y += 0.02;
+  mesh.rotation.z = 0.1;
 
-  mesh.scale.x += 0.002;
-  mesh.scale.y += 0.001;
+  // mesh.scale.x += 0.002;
+  // mesh.scale.y += 0.001;
 
   mesh.translation.z = 5;
 
@@ -176,7 +171,8 @@ void update(void) {
     face_vertices[1] = mesh.vertices[mesh_face.b - 1];
     face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-    vec4_t transformed_vertices[3];
+    triangle_3d_t transformed_triangle = {.points = {},
+                                          .color = mesh_face.color};
 
     // Loop all three vertices of this current face and apply transformations
     for (int j = 0; j < 3; j++) {
@@ -193,26 +189,16 @@ void update(void) {
       transformed_vertex = mat4_mul_vec4(world_matrix, transformed_vertex);
 
       // Save transformed vertex in the array of transformed vertices
-      transformed_vertices[j] = transformed_vertex;
+      transformed_triangle.points[j] = transformed_vertex;
     }
+
+    vec3_t normal = get_normal(transformed_triangle);
 
     if (culling != OFF) {
 
       // // Check backface culling
-      vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]); /*   A   */
-      vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]); /*  / \  */
-      vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]); /* C---B */
-
-      // Get the vector subtraction of B-A and C-A
-      vec3_t vector_ab = vec3_sub(vector_b, vector_a);
-      vec3_t vector_ac = vec3_sub(vector_c, vector_a);
-
-      vec3_normalize(&vector_ab);
-      vec3_normalize(&vector_ac);
-
-      // Compute the face normal (using cross product to find perpendicular)
-      vec3_t normal = vec3_cross(vector_ab, vector_ac);
-      vec3_normalize(&normal);
+      vec3_t vector_a =
+          vec3_from_vec4(transformed_triangle.points[0]); /*   A   */
 
       // Find the vector between a point in the triangle and the camera origin
       vec3_t camera_ray = vec3_sub(camera_position, vector_a);
@@ -227,28 +213,36 @@ void update(void) {
       }
     }
 
-    vec2_t projected_points[3];
+    vec4_t projected_points[3];
 
     // Loop all three vertices to perform projection
     for (int j = 0; j < 3; j++) {
       // Project the current vertex
-      projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]));
+      projected_points[j] =
+          mat4_mul_vec4_project(proj_matrix, transformed_triangle.points[j]);
 
-      // Scale and translate the projected points to the middle of the screen
-      projected_points[j].x += (int)(window_width / 2);
-      projected_points[j].y += (int)(window_height / 2);
+      // scale into the view
+      projected_points[j].x *= window_width / 2.0f;
+      projected_points[j].y *= window_height / 2.0f;
+
+      // translate the projected points to the middle of the screen
+      projected_points[j].x += (int)(window_width / 2.0f);
+      projected_points[j].y += (int)(window_height / 2.0f);
     }
 
-    triangle_t projected_triangle = {
+    transformed_triangle = apply_directional_light(transformed_triangle, light);
+
+    triangle_2d_t projected_triangle = {
         .points =
             {
                 {projected_points[0].x, projected_points[0].y},
                 {projected_points[1].x, projected_points[1].y},
                 {projected_points[2].x, projected_points[2].y},
             },
-        .color = mesh_face.color,
-        .avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z +
-                      transformed_vertices[2].z) /
+        .color = transformed_triangle.color,
+        .avg_depth = (transformed_triangle.points[0].z +
+                      transformed_triangle.points[1].z +
+                      transformed_triangle.points[2].z) /
                      3};
 
     // Save the projected triangle in the array of triangles to render
@@ -261,7 +255,7 @@ void update(void) {
     for (int j = i; j < triangles_len; j++) {
       if (triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth) {
         swap(&triangles_to_render[i], &triangles_to_render[j],
-             sizeof(triangle_t));
+             sizeof(triangle_2d_t));
       }
     }
   }
@@ -273,7 +267,7 @@ void render(void) {
   const int num_triangles = array_length(triangles_to_render);
 
   for (int i = 0; i < num_triangles; i++) {
-    triangle_t triangle = triangles_to_render[i];
+    triangle_2d_t triangle = triangles_to_render[i];
     draw_triangle(triangle, triangle.color, mode);
   }
 

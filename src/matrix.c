@@ -93,3 +93,15 @@ mat4_t mat4_make_perpective(float fov, float aspect_ration, float znear,
 
   return m;
 }
+
+vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v){
+  vec4_t result = mat4_mul_vec4(mat_proj, v);
+
+  if(result.w != 0.0){
+    result.x /= result.w;
+    result.y /= result.w;
+    result.z /= result.w;
+  }
+
+  return result;
+}
