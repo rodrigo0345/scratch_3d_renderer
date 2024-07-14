@@ -55,6 +55,6 @@ https://courses.pikuma.com/
 
 Here are some examples of what the engine can do:
 
-![](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22.webm)
+![](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22.mov)
 ![f22-shading](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22-shading.png)
 ![tank](https://github.com/rodrigo0345/c_renderer/blob/main/assets/tank.png)
