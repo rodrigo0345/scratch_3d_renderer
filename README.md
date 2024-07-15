@@ -6,9 +6,15 @@ Welcome to the Cool Rendering Engine! This project was built from scratch and us
 
 To get started with the Cool Rendering Engine, you'll need to install `SDL2` which is used for painting the pixels on the screen and nothing more.
 
+
 ### Installing SDL2
 
 #### On Ubuntu/Debian:
+
+```sh
+sudo apt-get update
+sudo apt-get install cmake make
+```
 
 ```sh
 sudo apt-get update
@@ -27,7 +33,15 @@ Once you have SDL2 installed, you can build the project using `make`.
 make
 ```
 
+*or* using `run.sh` you can run the project directly.
+
+```sh
+chmod +x ./run.sh; ./run.sh
+```
+
+
 ## Running the project
+
 ```sh
 make run
 ```
