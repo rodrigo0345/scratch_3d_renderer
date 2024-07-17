@@ -1,8 +1,9 @@
 #include "array.h"
 #include "display.h"
 #include "light.h"
-#include "matrix.h"
 #include "mesh.h"
+#include "matrix.h"
+#include "texture.h"
 #include "triangle.h"
 #include "vector.h"
 #include <SDL2/SDL.h>
@@ -13,7 +14,6 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_video.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -62,11 +62,17 @@ void setup(void) {
   float zfar = 100.0f;
   proj_matrix = mat4_make_perpective(fov, aspect_ratio, znear, zfar);
 
+  // load texture data manually
+  mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
+  texture_width = 64;
+  texture_height = 64;
+
   const char *filepath = "assets/f22.obj";
+
   // const char* filepath = "assets/cube.obj";
   // const char* filepath = "assets/tank.obj";
-  load_obj_file_data(filepath);
-  // load_cube_mesh_data();
+  // load_obj_file_data(filepath);
+  load_cube_mesh_data();
 }
 
 // this was just for fun
@@ -79,7 +85,6 @@ void process_input(void) {
   SDL_Event event;
   SDL_PollEvent(&event);
   SDL_GetMouseState(&mouse_x, &mouse_y);
-
 
   switch (event.type) {
   case SDL_QUIT:
@@ -104,6 +109,12 @@ void process_input(void) {
     } else if (event.key.keysym.sym == SDLK_4) {
       // solid and wire
       mode = SOLID_WIRE;
+    } else if (event.key.keysym.sym == SDLK_5) {
+      // solid and wire
+      mode = TEXTURED;
+    } else if (event.key.keysym.sym == SDLK_6) {
+      // solid and wire
+      mode = TEXTURED_WIRE;
     } else if (event.key.keysym.sym == SDLK_c) {
       // back-face culling
       culling = ON;
@@ -247,6 +258,12 @@ void update(void) {
                 {projected_points[1].x, projected_points[1].y},
                 {projected_points[2].x, projected_points[2].y},
             },
+        .texcoords =
+            {
+                {.u = mesh_face.a_uv.u, .v = mesh_face.a_uv.v},
+                {.u = mesh_face.b_uv.u, .v = mesh_face.b_uv.v},
+                {.u = mesh_face.c_uv.u, .v = mesh_face.c_uv.v},
+            },
         .color = transformed_triangle.color,
         .avg_depth = (transformed_triangle.points[0].z +
                       transformed_triangle.points[1].z +
@@ -276,7 +293,12 @@ void render(void) {
 
   for (int i = 0; i < num_triangles; i++) {
     triangle_2d_t triangle = triangles_to_render[i];
-    draw_triangle(triangle, triangle.color, mode);
+
+    if (mode == TEXTURED || mode == TEXTURED_WIRE) {
+      draw_textured_triangle(triangle, mesh_texture, mode);
+    } else {
+      draw_triangle(triangle, triangle.color, mode);
+    }
   }
 
   array_free(triangles_to_render);

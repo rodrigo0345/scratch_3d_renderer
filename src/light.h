@@ -2,6 +2,7 @@
 #define LIGHT_H
 
 #include "display.h"
+#include "triangle.h"
 #include "vector.h"
 
 typedef struct {

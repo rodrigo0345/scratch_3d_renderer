@@ -1,7 +1,6 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include "triangle.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
@@ -13,6 +12,8 @@ typedef enum {
   WIRE,
   SOLID,
   SOLID_WIRE,
+  TEXTURED,
+  TEXTURED_WIRE
 } Draw_mode;
 
 typedef enum {
@@ -48,9 +49,6 @@ void draw_rect(const int x, const int y, const int width, const int height,
                const color_t color);
 void draw_pixel(const int x, const int y, const uint32_t color);
 void draw_line(const int x0, const int y0, const int x1, const int y1, color_t color);
-void draw_triangle(
-  triangle_2d_t triangle, color_t color, Draw_mode draw_mode
-);
 void swap(void *a, void *b, size_t size);
 
 #endif // !DISPLAY_H
