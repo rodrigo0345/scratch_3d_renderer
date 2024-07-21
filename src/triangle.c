@@ -231,8 +231,8 @@ void draw_texel(int x, int y, uint32_t *texture, vec4_t point_a, vec4_t point_b,
   interpolated_v /= interpolated_reciprocal_w;
 
   // Map the UV coordinate to the full texture width and height
-  int tex_x = abs((int)(interpolated_u * texture_width));
-  int tex_y = abs((int)(interpolated_v * texture_height));
+  int tex_x = abs((int)(interpolated_u * texture_width)) % texture_width;
+  int tex_y = abs((int)(interpolated_v * texture_height)) % texture_height;
 
   draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
 }
@@ -268,9 +268,9 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
   int x2 = triangle.points[2].x, y2 = triangle.points[2].y;
   float z2 = triangle.points[2].z, w2 = triangle.points[2].w;
 
-  int u0 = triangle.texcoords[0].u, v0 = triangle.texcoords[0].v;
-  int u1 = triangle.texcoords[1].u, v1 = triangle.texcoords[1].v;
-  int u2 = triangle.texcoords[2].u, v2 = triangle.texcoords[2].v;
+  float u0 = triangle.texcoords[0].u, v0 = triangle.texcoords[0].v;
+  float u1 = triangle.texcoords[1].u, v1 = triangle.texcoords[1].v;
+  float u2 = triangle.texcoords[2].u, v2 = triangle.texcoords[2].v;
 
   // We need to sort the vertices by y-coordinate ascending (y0 < y1 < y2)
   if (y0 > y1) {

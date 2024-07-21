@@ -143,8 +143,10 @@ void load_obj_file_data(const char *filename) {
   if (mesh.vertices != NULL || mesh.mesh_faces != NULL) {
     array_free(mesh.vertices);
     array_free(mesh.mesh_faces);
+    array_free(mesh.tex_coords);
     mesh.mesh_faces = NULL;
     mesh.vertices = NULL;
+    mesh.tex_coords = NULL;
   }
 
   // Falta carregar as uv coords dos obj

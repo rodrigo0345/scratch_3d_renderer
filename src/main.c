@@ -68,14 +68,15 @@ void setup(void) {
   // texture_width = 64;
   // texture_height = 64;
 
-  const char *filepath = "assets/f22.obj";
+  const char *filepath = "assets/efa.obj";
 
   // const char* filepath = "assets/cube.obj";
   // const char* filepath = "assets/tank.obj";
-  // load_obj_file_data(filepath);
-  load_cube_mesh_data();
+  //
+  load_obj_file_data(filepath);
+  // load_cube_mesh_data();
 
-  load_png_texture_data("./assets/cube.png");
+  load_png_texture_data("assets/efa.png");
 }
 
 // this was just for fun
@@ -128,13 +129,16 @@ void process_input(void) {
       const char *filepath = "assets/f22.obj";
       // const char* filepath = "assets/cube.obj";
       // const char* filepath = "assets/tank.obj";
+        load_png_texture_data("assets/f22.png");
       load_obj_file_data(filepath);
     } else if (event.key.keysym.sym == SDLK_k) {
       const char *filepath = "assets/cube.obj";
       // const char* filepath = "assets/tank.obj";
+        load_png_texture_data("assets/cube.png");
       load_obj_file_data(filepath);
     } else if (event.key.keysym.sym == SDLK_t) {
-      const char *filepath = "assets/tank.obj";
+      const char *filepath = "assets/drone.obj";
+        load_png_texture_data("assets/drone.png");
       load_obj_file_data(filepath);
     }
     break;
