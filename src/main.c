@@ -20,7 +20,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-triangle_2d_t *triangles_to_render = NULL;
+#define MAX_TRIANGLES_PER_MESH 10000
+
+triangle_2d_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
+int num_triangles_to_render = 0;
 
 vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
@@ -43,8 +46,7 @@ void setup(void) {
   color_buffer =
       (uint32_t *)malloc(sizeof(uint32_t) * window_height * window_width);
 
-  z_buffer =
-      (float *)malloc(sizeof(float) * window_height * window_width);
+  z_buffer = (float *)malloc(sizeof(float) * window_height * window_width);
 
   if (!color_buffer) {
     fprintf(stderr, "Error initializing frame buffer");
@@ -86,7 +88,7 @@ void setup(void) {
 int x_translate = 0;
 
 Draw_mode mode = WIRE_DOT;
-Culling_mode culling = OFF;
+Culling_mode culling = ON;
 
 void process_input(void) {
   SDL_Event event;
@@ -132,16 +134,16 @@ void process_input(void) {
       const char *filepath = "assets/f22.obj";
       // const char* filepath = "assets/cube.obj";
       // const char* filepath = "assets/tank.obj";
-        load_png_texture_data("assets/f22.png");
+      load_png_texture_data("assets/f22.png");
       load_obj_file_data(filepath);
     } else if (event.key.keysym.sym == SDLK_k) {
       const char *filepath = "assets/cube.obj";
       // const char* filepath = "assets/tank.obj";
-        load_png_texture_data("assets/cube.png");
+      load_png_texture_data("assets/cube.png");
       load_obj_file_data(filepath);
     } else if (event.key.keysym.sym == SDLK_t) {
       const char *filepath = "assets/drone.obj";
-        load_png_texture_data("assets/drone.png");
+      load_png_texture_data("assets/drone.png");
       load_obj_file_data(filepath);
     }
     break;
@@ -158,6 +160,7 @@ vec3_t translate(vec3_t point, int x, int y, int z) {
 void update(void) {
   // Wait some time until the reach the target frame time in milliseconds
   int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+  num_triangles_to_render = 0;
 
   // Only delay execution if we are running too fast
   if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
@@ -165,9 +168,6 @@ void update(void) {
   }
 
   previous_frame_time = SDL_GetTicks();
-
-  // Initialize the array of triangles to render
-  triangles_to_render = NULL;
 
   mesh.rotation.y += .01f;
 
@@ -274,21 +274,22 @@ void update(void) {
                 {.u = mesh_face.b_uv.u, .v = mesh_face.b_uv.v},
                 {.u = mesh_face.c_uv.u, .v = mesh_face.c_uv.v},
             },
-        .color = transformed_triangle.color,
-        .avg_depth = (transformed_triangle.points[0].z +
-                      transformed_triangle.points[1].z +
-                      transformed_triangle.points[2].z) /
-                     3};
+        .color = transformed_triangle.color};
+
+    if(num_triangles_to_render >= MAX_TRIANGLES_PER_MESH){
+      continue;
+    }
 
     // Save the projected triangle in the array of triangles to render
-    array_push(triangles_to_render, projected_triangle);
+    triangles_to_render[num_triangles_to_render++] = projected_triangle;
   }
 
   // // TODO: sort the triangles to render with the avg_depth (Painter's Algo)
   // const int triangles_len = array_length(triangles_to_render);
   // for (int i = 0; i < triangles_len; i++) {
   //   for (int j = i; j < triangles_len; j++) {
-  //     if (triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth) {
+  //     if (triangles_to_render[i].avg_depth <
+  //     triangles_to_render[j].avg_depth) {
   //       swap(&triangles_to_render[i], &triangles_to_render[j],
   //            sizeof(triangle_2d_t));
   //     }
@@ -298,10 +299,7 @@ void update(void) {
 
 void render(void) {
 
-  // Loop all projected triangles and render them
-  const int num_triangles = array_length(triangles_to_render);
-
-  for (int i = 0; i < num_triangles; i++) {
+  for (int i = 0; i < MAX_TRIANGLES_PER_MESH; i++) {
     triangle_2d_t triangle = triangles_to_render[i];
 
     if (mode == TEXTURED || mode == TEXTURED_WIRE) {
@@ -309,9 +307,11 @@ void render(void) {
     } else {
       draw_triangle(triangle, triangle.color, mode);
     }
-  }
 
-  array_free(triangles_to_render);
+    triangles_to_render[i] = (triangle_2d_t){
+      .color = 0x000000,
+    };
+  }
 
   render_color_buffer();
   clear_color_buffer(0xFF000000);

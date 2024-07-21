@@ -66,7 +66,7 @@ void clear_color_buffer(uint32_t color) {
 void clear_z_buffer(){
   for (int y = 0; y < window_height; y++) {
     for (int x = 0; x < window_width; x++) {
-      z_buffer[(window_width * y) + x] = 0;
+      z_buffer[(window_width * y) + x] = 1.0;
     }
   }
 }
