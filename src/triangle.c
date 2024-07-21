@@ -197,19 +197,35 @@ vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p) {
 ///////////////////////////////////////////////////////////////////////////////
 // Function to draw the textured pixel at position x and y using interpolation
 ///////////////////////////////////////////////////////////////////////////////
-void draw_texel(int x, int y, uint32_t *texture, vec2_t point_a, vec2_t point_b,
-                vec2_t point_c, float u0, float v0, float u1, float v1,
+void draw_texel(int x, int y, uint32_t *texture, vec4_t point_a, vec4_t point_b,
+                vec4_t point_c, float u0, float v0, float u1, float v1,
                 float u2, float v2) {
   vec2_t point_p = {x, y};
-  vec3_t weights = barycentric_weights(point_a, point_b, point_c, point_p);
+  vec3_t weights =
+      barycentric_weights((vec2_t){.x = point_a.x, .y = point_a.y},
+                          (vec2_t){.x = point_b.x, .y = point_b.y},
+                          (vec2_t){.x = point_c.x, .y = point_c.y}, point_p);
 
   float alpha = weights.x;
   float beta = weights.y;
   float gamma = weights.z;
 
+  float interpolated_u;
+  float interpolated_v;
+  float interpolated_reciprocal_w;
+
   // Perform the interpolation of all U and V values using barycentric weights
-  float interpolated_u = (u0)*alpha + (u1)*beta + (u2)*gamma;
-  float interpolated_v = (v0)*alpha + (v1)*beta + (v2)*gamma;
+  interpolated_u = (u0 / point_a.w) * alpha + (u1 / point_b.w) * beta +
+                         (u2 / point_c.w) * gamma;
+  interpolated_v = (v0 / point_a.w) * alpha + (v1 / point_b.w) * beta +
+                         (v2 / point_c.w) * gamma;
+
+  // Also interpolate the value of 1/w for this pixel
+  interpolated_reciprocal_w = (1 / point_a.w) * alpha + (1 / point_b.w) * beta +
+                              (1 / point_c.w) * gamma;
+
+  interpolated_u /= interpolated_reciprocal_w;
+  interpolated_v /= interpolated_reciprocal_w;
 
   // Map the UV coordinate to the full texture width and height
   int tex_x = abs((int)(interpolated_u * texture_width));
@@ -241,8 +257,13 @@ void draw_texel(int x, int y, uint32_t *texture, vec2_t point_a, vec2_t point_b,
 void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
                             Draw_mode draw_mode) {
   int x0 = triangle.points[0].x, y0 = triangle.points[0].y;
+  float z0 = triangle.points[0].z, w0 = triangle.points[0].w;
+
   int x1 = triangle.points[1].x, y1 = triangle.points[1].y;
+  float z1 = triangle.points[1].z, w1 = triangle.points[1].w;
+
   int x2 = triangle.points[2].x, y2 = triangle.points[2].y;
+  float z2 = triangle.points[2].z, w2 = triangle.points[2].w;
 
   int u0 = triangle.texcoords[0].u, v0 = triangle.texcoords[0].v;
   int u1 = triangle.texcoords[1].u, v1 = triangle.texcoords[1].v;
@@ -252,26 +273,35 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
   if (y0 > y1) {
     swap(&y0, &y1, sizeof(int));
     swap(&x0, &x1, sizeof(int));
+    swap(&z0, &z1, sizeof(float));
+    swap(&w0, &w1, sizeof(float));
+
     swap(&u0, &u1, sizeof(float));
     swap(&v0, &v1, sizeof(float));
   }
   if (y1 > y2) {
     swap(&y1, &y2, sizeof(int));
     swap(&x1, &x2, sizeof(int));
+    swap(&z1, &z2, sizeof(float));
+    swap(&w1, &w2, sizeof(float));
+
     swap(&u1, &u2, sizeof(float));
     swap(&v1, &v2, sizeof(float));
   }
   if (y0 > y1) {
     swap(&y0, &y1, sizeof(int));
     swap(&x0, &x1, sizeof(int));
+    swap(&z0, &z1, sizeof(float));
+    swap(&w0, &w1, sizeof(float));
+
     swap(&u0, &u1, sizeof(float));
     swap(&v0, &v1, sizeof(float));
   }
 
   // Create vector points and texture coords after we sort the vertices
-  vec2_t point_a = {x0, y0};
-  vec2_t point_b = {x1, y1};
-  vec2_t point_c = {x2, y2};
+  vec4_t point_a = {x0, y0, z0, w0};
+  vec4_t point_b = {x1, y1, z1, w1};
+  vec4_t point_c = {x2, y2, z2, w2};
 
   ///////////////////////////////////////////////////////
   // Render the upper part of the triangle (flat-bottom)
@@ -331,7 +361,7 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
     }
   }
 
-  if(draw_mode == TEXTURED_WIRE){
+  if (draw_mode == TEXTURED_WIRE) {
     draw_line(x0, y0, x1, y1, 0xFFFFFFFF);
     draw_line(x0, y0, x2, y2, 0xFFFFFFFF);
     draw_line(x1, y1, x2, y2, 0xFFFFFFFF);

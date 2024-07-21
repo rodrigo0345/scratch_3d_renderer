@@ -1,6 +1,4 @@
 #include "display.h"
-#include "triangle.h"
-#include "vector.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>

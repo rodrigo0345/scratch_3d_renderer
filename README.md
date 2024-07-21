@@ -30,7 +30,7 @@ brew install sdl2
 
 Once you have SDL2 installed, you can build the project using `make`.
 ```sh
-make
+cmake -S . -B build
 ```
 
 *or* using `run.sh` you can run the project directly.
@@ -43,7 +43,19 @@ chmod +x ./run.sh; ./run.sh
 ## Running the project
 
 ```sh
-make run
+cd build; 
+make; 
+cd ..; 
+./build/rendering_engine
+```
+
+## Debugging the project
+
+```sh
+cd build; 
+make; 
+cd ..; 
+gdb ./build/rendering_engine
 ```
 
 ## Commands

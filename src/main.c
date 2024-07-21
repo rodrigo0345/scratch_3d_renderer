@@ -1,8 +1,8 @@
 #include "array.h"
 #include "display.h"
 #include "light.h"
-#include "mesh.h"
 #include "matrix.h"
+#include "mesh.h"
 #include "texture.h"
 #include "triangle.h"
 #include "vector.h"
@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 triangle_2d_t *triangles_to_render = NULL;
 
@@ -63,9 +64,9 @@ void setup(void) {
   proj_matrix = mat4_make_perpective(fov, aspect_ratio, znear, zfar);
 
   // load texture data manually
-  mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
-  texture_width = 64;
-  texture_height = 64;
+  // mesh_texture = ;
+  // texture_width = 64;
+  // texture_height = 64;
 
   const char *filepath = "assets/f22.obj";
 
@@ -73,6 +74,8 @@ void setup(void) {
   // const char* filepath = "assets/tank.obj";
   // load_obj_file_data(filepath);
   load_cube_mesh_data();
+
+  load_png_texture_data("./assets/cube.png");
 }
 
 // this was just for fun
@@ -159,6 +162,7 @@ void update(void) {
   // Initialize the array of triangles to render
   triangles_to_render = NULL;
 
+  // mesh.rotation.z += .01f;
   mesh.rotation.x += .01f;
 
   // mesh.rotation.z += 0.01;
@@ -254,9 +258,9 @@ void update(void) {
     triangle_2d_t projected_triangle = {
         .points =
             {
-                {projected_points[0].x, projected_points[0].y},
-                {projected_points[1].x, projected_points[1].y},
-                {projected_points[2].x, projected_points[2].y},
+                projected_points[0],
+                projected_points[1],
+                projected_points[2],
             },
         .texcoords =
             {
@@ -310,7 +314,6 @@ void render(void) {
 }
 
 int main(void) {
-
   is_running = initialize_window();
 
   setup();
