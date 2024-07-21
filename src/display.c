@@ -1,4 +1,6 @@
 #include "display.h"
+#include "texture.h"
+#include "upng.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -67,6 +69,7 @@ void render_color_buffer(void) {
 }
 
 void destroy_window(void) {
+  upng_free(png_texture);
   free(window);
   SDL_DestroyTexture(color_buffer_texture);
   SDL_DestroyWindow(window);

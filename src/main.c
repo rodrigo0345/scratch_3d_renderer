@@ -52,7 +52,7 @@ void setup(void) {
   // buffer texture is going to be responsible for
   // translating our color_buffer to SDL
   ////////////////////////////////////////////////////////////////
-  color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+  color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
 
@@ -162,8 +162,7 @@ void update(void) {
   // Initialize the array of triangles to render
   triangles_to_render = NULL;
 
-  // mesh.rotation.z += .01f;
-  mesh.rotation.x += .01f;
+  mesh.rotation.y += .01f;
 
   // mesh.rotation.z += 0.01;
   // mesh.scale.x += 0.002;
@@ -187,9 +186,9 @@ void update(void) {
     face_t mesh_face = mesh.mesh_faces[i];
 
     vec3_t face_vertices[3];
-    face_vertices[0] = mesh.vertices[mesh_face.a - 1];
-    face_vertices[1] = mesh.vertices[mesh_face.b - 1];
-    face_vertices[2] = mesh.vertices[mesh_face.c - 1];
+    face_vertices[0] = mesh.vertices[mesh_face.a];
+    face_vertices[1] = mesh.vertices[mesh_face.b];
+    face_vertices[2] = mesh.vertices[mesh_face.c];
 
     triangle_3d_t transformed_triangle = {.points = {},
                                           .color = mesh_face.color};

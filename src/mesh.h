@@ -2,6 +2,7 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include "texture.h"
 #include "triangle.h"
 #include "vector.h"
 
@@ -13,6 +14,7 @@ extern face_t mesh_faces[N_CUBE_FACES];
 
 typedef struct {
   vec3_t *vertices;
+  tex2_t *tex_coords;
   face_t *mesh_faces;
 
   // transformation, scale, rotate

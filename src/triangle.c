@@ -113,17 +113,20 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
 
   if (draw_mode == WIRE || draw_mode == WIRE_DOT || draw_mode == SOLID_WIRE) {
     draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x,
-              triangle.points[1].y, color - 0xFF);
+              triangle.points[1].y, color);
     draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x,
-              triangle.points[2].y, color - 0xFF);
+              triangle.points[2].y, color);
     draw_line(triangle.points[2].x, triangle.points[2].y, triangle.points[0].x,
-              triangle.points[0].y, color - 0xFF);
+              triangle.points[0].y, color);
     if (draw_mode == WIRE)
       return;
   }
 
   if (draw_mode == WIRE_DOT) {
     // TODO:
+    draw_pixel(triangle.points[0].x, triangle.points[0].y, 0xFF0000FF);
+    draw_pixel(triangle.points[1].x, triangle.points[1].y, 0xFF0000FF);
+    draw_pixel(triangle.points[2].x, triangle.points[2].y, 0xFF0000FF);
     return;
   }
 
@@ -216,9 +219,9 @@ void draw_texel(int x, int y, uint32_t *texture, vec4_t point_a, vec4_t point_b,
 
   // Perform the interpolation of all U and V values using barycentric weights
   interpolated_u = (u0 / point_a.w) * alpha + (u1 / point_b.w) * beta +
-                         (u2 / point_c.w) * gamma;
+                   (u2 / point_c.w) * gamma;
   interpolated_v = (v0 / point_a.w) * alpha + (v1 / point_b.w) * beta +
-                         (v2 / point_c.w) * gamma;
+                   (v2 / point_c.w) * gamma;
 
   // Also interpolate the value of 1/w for this pixel
   interpolated_reciprocal_w = (1 / point_a.w) * alpha + (1 / point_b.w) * beta +
@@ -303,6 +306,10 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
   vec4_t point_b = {x1, y1, z1, w1};
   vec4_t point_c = {x2, y2, z2, w2};
 
+  vec2_t a_uv = {u0, 1-v0};
+  vec2_t b_uv = {u1, 1-v1};
+  vec2_t c_uv = {u2, 1-v2};
+
   ///////////////////////////////////////////////////////
   // Render the upper part of the triangle (flat-bottom)
   ///////////////////////////////////////////////////////
@@ -326,8 +333,8 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
 
       for (int x = x_start; x < x_end; x++) {
         // Draw our pixel with the color that comes from the texture
-        draw_texel(x, y, texture, point_a, point_b, point_c, u0, v0, u1, v1, u2,
-                   v2);
+        draw_texel(x, y, texture, point_a, point_b, point_c, a_uv.x, a_uv.y,
+                   b_uv.x, b_uv.y, c_uv.x, c_uv.y);
       }
     }
   }
@@ -355,8 +362,8 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
 
       for (int x = x_start; x < x_end; x++) {
         // Draw our pixel with the color that comes from the texture
-        draw_texel(x, y, texture, point_a, point_b, point_c, u0, v0, u1, v1, u2,
-                   v2);
+        draw_texel(x, y, texture, point_a, point_b, point_c, a_uv.x, a_uv.y,
+                   b_uv.x, b_uv.y, c_uv.x, c_uv.y);
       }
     }
   }
