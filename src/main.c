@@ -43,6 +43,9 @@ void setup(void) {
   color_buffer =
       (uint32_t *)malloc(sizeof(uint32_t) * window_height * window_width);
 
+  z_buffer =
+      (float *)malloc(sizeof(float) * window_height * window_width);
+
   if (!color_buffer) {
     fprintf(stderr, "Error initializing frame buffer");
     return;
@@ -169,7 +172,7 @@ void update(void) {
   mesh.rotation.y += .01f;
 
   // mesh.rotation.z += 0.01;
-  // mesh.scale.x += 0.002;
+  mesh.rotation.x = -3.1416 / 3;
   // mesh.scale.y += 0.001;
 
   mesh.translation.z = 5;
@@ -281,16 +284,16 @@ void update(void) {
     array_push(triangles_to_render, projected_triangle);
   }
 
-  // TODO: sort the triangles to render with the avg_depth (Painter's Algo)
-  const int triangles_len = array_length(triangles_to_render);
-  for (int i = 0; i < triangles_len; i++) {
-    for (int j = i; j < triangles_len; j++) {
-      if (triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth) {
-        swap(&triangles_to_render[i], &triangles_to_render[j],
-             sizeof(triangle_2d_t));
-      }
-    }
-  }
+  // // TODO: sort the triangles to render with the avg_depth (Painter's Algo)
+  // const int triangles_len = array_length(triangles_to_render);
+  // for (int i = 0; i < triangles_len; i++) {
+  //   for (int j = i; j < triangles_len; j++) {
+  //     if (triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth) {
+  //       swap(&triangles_to_render[i], &triangles_to_render[j],
+  //            sizeof(triangle_2d_t));
+  //     }
+  //   }
+  // }
 }
 
 void render(void) {
@@ -312,6 +315,7 @@ void render(void) {
 
   render_color_buffer();
   clear_color_buffer(0xFF000000);
+  clear_z_buffer();
 
   SDL_RenderPresent(renderer);
 }

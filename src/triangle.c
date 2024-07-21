@@ -1,4 +1,5 @@
 #include "triangle.h"
+#include "array.h"
 #include "display.h"
 #include "texture.h"
 #include "vector.h"
@@ -234,7 +235,12 @@ void draw_texel(int x, int y, uint32_t *texture, vec4_t point_a, vec4_t point_b,
   int tex_x = abs((int)(interpolated_u * texture_width)) % texture_width;
   int tex_y = abs((int)(interpolated_v * texture_height)) % texture_height;
 
-  draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+  if(z_buffer[(window_width * y) + x] < interpolated_reciprocal_w){
+    draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+
+    // update z buffer with 1/w
+    z_buffer[(window_width * y) + x] = interpolated_reciprocal_w;
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

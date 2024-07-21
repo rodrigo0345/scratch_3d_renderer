@@ -34,6 +34,7 @@ extern SDL_Renderer *renderer;
 // uses 32bits/4bytes in memory
 extern uint32_t *color_buffer;
 extern SDL_Texture *color_buffer_texture;
+extern float* z_buffer;
 
 extern int window_height;
 extern int window_width;
@@ -42,6 +43,7 @@ bool initialize_window(void);
 void destroy_window(void);
 
 void clear_color_buffer(uint32_t color);
+void clear_z_buffer();
 void render_color_buffer(void);
 
 void draw_grid(const int h, const int w, const int size, const color_t color);
