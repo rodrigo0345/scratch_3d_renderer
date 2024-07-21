@@ -28,7 +28,6 @@ freely, subject to the following restrictions:
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-
 #include "upng.h"
 
 #define MAKE_BYTE(b) ((b) & 0xFF)
