@@ -1,4 +1,5 @@
 #include "matrix.h"
+#include "vector.h"
 #include <math.h>
 
 mat4_t mat4_identity(void) {
@@ -94,14 +95,35 @@ mat4_t mat4_make_perpective(float fov, float aspect_ration, float znear,
   return m;
 }
 
-vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v){
+vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v) {
   vec4_t result = mat4_mul_vec4(mat_proj, v);
 
-  if(result.w != 0.0){
+  if (result.w != 0.0) {
     result.x /= result.w;
     result.y /= result.w;
     result.z /= result.w;
   }
 
   return result;
+}
+
+mat4_t mat4_look_at(vec3_t eye, vec3_t target, vec3_t up) {
+
+  // forward vector
+  vec3_t z = vec3_sub(target, eye);
+  vec3_normalize(&z);
+
+  // right vector dá um vetor perpendicular entre up e z
+  vec3_t x = vec3_cross(up, z);
+  vec3_normalize(&x);
+
+  // up vector, que é a perpendicular entre z e x
+  vec3_t y = vec3_cross(z, x);
+
+  return (mat4_t) {{
+      {x.x, x.y, x.z, -vec3_dot(x, eye)},
+      {y.x, y.y, y.z, -vec3_dot(y, eye)},
+      {z.x, z.y, z.z, -vec3_dot(z, eye)},
+      {0, 0, 0, 1},
+  }};
 }
