@@ -1,4 +1,5 @@
 #include "array.h"
+#include "camera.h"
 #include "display.h"
 #include "light.h"
 #include "matrix.h"
@@ -25,11 +26,10 @@
 triangle_2d_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
 int num_triangles_to_render = 0;
 
-vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
-
 bool is_running = true;
 
 mat4_t proj_matrix;
+mat4_t view_matrix;
 
 uint32_t previous_frame_time = 0;
 
@@ -176,6 +176,12 @@ void update(void) {
   // mesh.scale.y += 0.001;
 
   mesh.translation.z = 5;
+  mesh.translation.y += 0.01;
+  mesh.translation.x += 0.01;
+
+  // create view matrix
+  view_matrix =
+      mat4_look_at(camera.position, mesh.translation, (vec3_t){0, 1, 0});
 
   mat4_t scale_matrix =
       mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
@@ -213,6 +219,7 @@ void update(void) {
       world_matrix = mat4_mul_mat4(translation_matrix, world_matrix);
 
       transformed_vertex = mat4_mul_vec4(world_matrix, transformed_vertex);
+      transformed_vertex = mat4_mul_vec4(view_matrix, transformed_vertex);
 
       // Save transformed vertex in the array of transformed vertices
       transformed_triangle.points[j] = transformed_vertex;
@@ -227,7 +234,9 @@ void update(void) {
           vec3_from_vec4(transformed_triangle.points[0]); /*   A   */
 
       // Find the vector between a point in the triangle and the camera origin
-      vec3_t camera_ray = vec3_sub(camera_position, vector_a);
+      // a camera está sempre na origem
+      vec3_t origin = {0, 0, 0};
+      vec3_t camera_ray = vec3_sub(origin, vector_a);
 
       // Calculate how aligned the camera ray is with the face normal (using dot
       // product)
@@ -276,7 +285,7 @@ void update(void) {
             },
         .color = transformed_triangle.color};
 
-    if(num_triangles_to_render >= MAX_TRIANGLES_PER_MESH){
+    if (num_triangles_to_render >= MAX_TRIANGLES_PER_MESH) {
       continue;
     }
 
@@ -309,7 +318,7 @@ void render(void) {
     }
 
     triangles_to_render[i] = (triangle_2d_t){
-      .color = 0x000000,
+        .color = 0x000000,
     };
   }
 
