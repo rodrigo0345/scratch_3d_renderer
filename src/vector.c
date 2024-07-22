@@ -151,3 +151,11 @@ vec3_t vec3_from_vec4(vec4_t v) {
     vec3_t result = { v.x, v.y, v.z };
     return result;
 }
+
+vec3_t vec3_clone(vec3_t* v){
+  return (vec3_t) {
+    .x = v->x,
+    .y = v->y,
+    .z = v->z
+  };
+}

@@ -1,5 +1,6 @@
 #include "array.h"
 #include "camera.h"
+#include "clipping.h"
 #include "display.h"
 #include "light.h"
 #include "matrix.h"
@@ -63,11 +64,15 @@ void setup(void) {
                                            window_width, window_height);
 
   // init the perspective matrix
-  float fov = 3.141549 / 3; // 60 deg
-  float aspect_ratio = window_height / (float)window_width;
+  float aspect_ratio_y = window_height / (float)window_width;
+  float aspect_ratio_x = window_width / (float)window_height;
+  float fovy = 3.141549 / 3;                                  // 60 deg
+  float fovx = atan(tan(fovy / 2.0) * aspect_ratio_x) * 2.0f; // 60 deg
   float znear = 0.1f;
   float zfar = 100.0f;
-  proj_matrix = mat4_make_perpective(fov, aspect_ratio, znear, zfar);
+  proj_matrix = mat4_make_perpective(fovy, aspect_ratio_y, znear, zfar);
+
+  initialize_frustum_planes(fovx, fovy, znear, zfar);
 
   // load texture data manually
   // mesh_texture = ;
@@ -301,62 +306,75 @@ void update(void) {
       }
     }
 
-    vec4_t projected_points[3];
+    // clipping
+    polygon_t polygon = create_polygon_from_triangle(
+        vec3_from_vec4(transformed_triangle.points[0]),
+        vec3_from_vec4(transformed_triangle.points[1]),
+        vec3_from_vec4(transformed_triangle.points[2]), mesh_face.a_uv,
+        mesh_face.b_uv, mesh_face.c_uv);
 
-    // Loop all three vertices to perform projection
-    for (int j = 0; j < 3; j++) {
-      // Project the current vertex
-      projected_points[j] =
-          mat4_mul_vec4_project(proj_matrix, transformed_triangle.points[j]);
+    clip_polygon(&polygon);
 
-      // scale into the view
-      projected_points[j].x *= window_width / 2.0f;
-      projected_points[j].y *= window_height / 2.0f;
+    triangle_3d_t triangles_after_clipping[MAX_NUM_POLY_TRIANGLES];
+    int num_of_triangles_after_clipping = 0;
 
-      // Invert the y values to account for flipped screen y coordenate
-      projected_points[j].y *= -1;
+    triangles_from_polygon(&polygon, triangles_after_clipping,
+                           &num_of_triangles_after_clipping);
 
-      // translate the projected points to the middle of the screen
-      projected_points[j].x += (int)(window_width / 2.0f);
-      projected_points[j].y += (int)(window_height / 2.0f);
+    for (int t = 0; t < num_of_triangles_after_clipping; t++) {
+
+      vec4_t projected_points[3];
+      triangle_3d_t triangle_after_clipping = triangles_after_clipping[t];
+
+      // Loop all three vertices to perform projection
+      for (int j = 0; j < 3; j++) {
+        // Project the current vertex
+        projected_points[j] = mat4_mul_vec4_project(
+            proj_matrix, triangle_after_clipping.points[j]);
+
+        triangles_after_clipping[t].color = transformed_triangle.color;
+
+        // scale into the view
+        projected_points[j].x *= window_width / 2.0f;
+        projected_points[j].y *= window_height / 2.0f;
+
+        // Invert the y values to account for flipped screen y coordenate
+        projected_points[j].y *= -1;
+
+        // translate the projected points to the middle of the screen
+        projected_points[j].x += (int)(window_width / 2.0f);
+        projected_points[j].y += (int)(window_height / 2.0f);
+      }
+
+      transformed_triangle =
+          apply_directional_light(triangles_after_clipping[t], light);
+
+      triangle_2d_t projected_triangle = {
+          .points =
+              {
+                  projected_points[0],
+                  projected_points[1],
+                  projected_points[2],
+              },
+          .texcoords =
+              {
+                  {.u = triangle_after_clipping.texcoords[0].u,
+                   .v = triangle_after_clipping.texcoords[0].v},
+                  {.u = triangle_after_clipping.texcoords[1].u,
+                   .v = triangle_after_clipping.texcoords[1].v},
+                  {.u = triangle_after_clipping.texcoords[2].u,
+                   .v = triangle_after_clipping.texcoords[2].v},
+              },
+          .color = transformed_triangle.color};
+
+      if (num_triangles_to_render >= MAX_TRIANGLES_PER_MESH) {
+        continue;
+      }
+
+      // Save the projected triangle in the array of triangles to render
+      triangles_to_render[num_triangles_to_render++] = projected_triangle;
     }
-
-    transformed_triangle = apply_directional_light(transformed_triangle, light);
-
-    triangle_2d_t projected_triangle = {
-        .points =
-            {
-                projected_points[0],
-                projected_points[1],
-                projected_points[2],
-            },
-        .texcoords =
-            {
-                {.u = mesh_face.a_uv.u, .v = mesh_face.a_uv.v},
-                {.u = mesh_face.b_uv.u, .v = mesh_face.b_uv.v},
-                {.u = mesh_face.c_uv.u, .v = mesh_face.c_uv.v},
-            },
-        .color = transformed_triangle.color};
-
-    if (num_triangles_to_render >= MAX_TRIANGLES_PER_MESH) {
-      continue;
-    }
-
-    // Save the projected triangle in the array of triangles to render
-    triangles_to_render[num_triangles_to_render++] = projected_triangle;
   }
-
-  // // TODO: sort the triangles to render with the avg_depth (Painter's Algo)
-  // const int triangles_len = array_length(triangles_to_render);
-  // for (int i = 0; i < triangles_len; i++) {
-  //   for (int j = i; j < triangles_len; j++) {
-  //     if (triangles_to_render[i].avg_depth <
-  //     triangles_to_render[j].avg_depth) {
-  //       swap(&triangles_to_render[i], &triangles_to_render[j],
-  //            sizeof(triangle_2d_t));
-  //     }
-  //   }
-  // }
 }
 
 void render(void) {

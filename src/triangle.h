@@ -28,6 +28,7 @@ typedef struct {
 typedef struct {
   vec4_t points[3];
   uint32_t color;
+  tex2_t texcoords[3];
 } triangle_3d_t;
 
 vec3_t get_normal(triangle_3d_t t);
