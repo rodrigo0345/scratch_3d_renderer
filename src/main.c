@@ -27,6 +27,7 @@ triangle_2d_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
 int num_triangles_to_render = 0;
 
 bool is_running = true;
+float delta_time = 0.0f;
 
 mat4_t proj_matrix;
 mat4_t view_matrix;
@@ -102,50 +103,86 @@ void process_input(void) {
   case SDL_KEYDOWN:
     if (event.key.keysym.sym == SDLK_ESCAPE) {
       is_running = false;
-    } else if (event.key.keysym.sym == SDLK_w) {
+    }
+    if (event.key.keysym.sym == SDLK_w) {
       x_translate += 1;
-    } else if (event.key.keysym.sym == SDLK_s) {
+    }
+    if (event.key.keysym.sym == SDLK_s) {
       x_translate -= 1;
-    } else if (event.key.keysym.sym == SDLK_1) {
+    }
+    if (event.key.keysym.sym == SDLK_1) {
       // display wireframe and small dot
       mode = WIRE_DOT;
-    } else if (event.key.keysym.sym == SDLK_2) {
+    }
+    if (event.key.keysym.sym == SDLK_2) {
       // wireframe lines
       mode = WIRE;
-    } else if (event.key.keysym.sym == SDLK_3) {
+    }
+    if (event.key.keysym.sym == SDLK_3) {
       // solid
       mode = SOLID;
-    } else if (event.key.keysym.sym == SDLK_4) {
+    }
+    if (event.key.keysym.sym == SDLK_4) {
       // solid and wire
       mode = SOLID_WIRE;
-    } else if (event.key.keysym.sym == SDLK_5) {
+    }
+    if (event.key.keysym.sym == SDLK_5) {
       // solid and wire
       mode = TEXTURED;
-    } else if (event.key.keysym.sym == SDLK_6) {
+    }
+    if (event.key.keysym.sym == SDLK_6) {
       // solid and wire
       mode = TEXTURED_WIRE;
-    } else if (event.key.keysym.sym == SDLK_c) {
-      // back-face culling
-      culling = ON;
-    } else if (event.key.keysym.sym == SDLK_d) {
-      // no back-face culling
-      culling = OFF;
-    } else if (event.key.keysym.sym == SDLK_f) {
+    }
+    // if (event.key.keysym.sym == SDLK_c) {
+    //   // back-face culling
+    //   culling = ON;
+    // }
+    // if (event.key.keysym.sym == SDLK_d) {
+    //   // no back-face culling
+    //   culling = OFF;
+    // }
+    if (event.key.keysym.sym == SDLK_f) {
       const char *filepath = "assets/f22.obj";
       // const char* filepath = "assets/cube.obj";
       // const char* filepath = "assets/tank.obj";
       load_png_texture_data("assets/f22.png");
       load_obj_file_data(filepath);
-    } else if (event.key.keysym.sym == SDLK_k) {
+    }
+    if (event.key.keysym.sym == SDLK_k) {
       const char *filepath = "assets/cube.obj";
       // const char* filepath = "assets/tank.obj";
       load_png_texture_data("assets/cube.png");
       load_obj_file_data(filepath);
-    } else if (event.key.keysym.sym == SDLK_t) {
+    }
+    if (event.key.keysym.sym == SDLK_t) {
       const char *filepath = "assets/drone.obj";
       load_png_texture_data("assets/drone.png");
       load_obj_file_data(filepath);
     }
+
+    // camera movement
+    if (event.key.keysym.sym == SDLK_w) {
+      camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+      camera.position = vec3_add(camera.position, camera.forward_velocity);
+    }
+    if (event.key.keysym.sym == SDLK_s) {
+      camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+      camera.position = vec3_sub(camera.position, camera.forward_velocity);
+    }
+    if (event.key.keysym.sym == SDLK_a) {
+      camera.yaw_angle -= 1.0 * delta_time;
+    }
+    if (event.key.keysym.sym == SDLK_d) {
+      camera.yaw_angle += 1.0 * delta_time;
+    }
+    if (event.key.keysym.sym == SDLK_LSHIFT) {
+      camera.position.y += 1.5 * delta_time;
+    }
+    if (event.key.keysym.sym == SDLK_LCTRL) {
+      camera.position.y -= 1.5 * delta_time;
+    }
+
     break;
   }
 }
@@ -159,29 +196,45 @@ vec3_t translate(vec3_t point, int x, int y, int z) {
 
 void update(void) {
   // Wait some time until the reach the target frame time in milliseconds
-  int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+  // int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() -
+  // previous_frame_time);
   num_triangles_to_render = 0;
 
-  // Only delay execution if we are running too fast
-  if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
-    SDL_Delay(time_to_wait);
-  }
+  // // Only delay execution if we are running too fast
+  // if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+  //   SDL_Delay(time_to_wait);
+  // }
+
+  // precisa de ser convertido para segundos, há de ficar tipo 0.001s
+  delta_time = (SDL_GetTicks() - previous_frame_time) / 1000.0f;
 
   previous_frame_time = SDL_GetTicks();
 
-  mesh.rotation.y += .01f;
+  // mesh.rotation.y += .6f * delta_time;
+  mesh.translation.z = 5;
 
   // mesh.rotation.z += 0.01;
-  mesh.rotation.x = -3.1416 / 3;
+  // mesh.rotation.x = -3.1416 / 3;
   // mesh.scale.y += 0.001;
 
-  mesh.translation.z = 5;
-  mesh.translation.y += 0.01;
-  mesh.translation.x += 0.01;
+  // mesh.translation.y += 0.01 * delta_time;
+  // mesh.translation.x += 1.00 * delta_time;
+  //
+
+  vec3_t up_direction = {0, 1, 0};
+  vec3_t target = {0, 0, 1};
+
+  mat4_t camera_yaw_rotation = mat4_make_rotation(camera.yaw_angle, Y);
+  vec4_t direction = mat4_mul_vec4(
+      camera_yaw_rotation,
+      (vec4_t){.x = target.x, .y = target.y, .z = target.z, .w = 0.0f});
+  camera.direction =
+      (vec3_t){.x = direction.x, .y = direction.y, .z = direction.z};
+
+  target = vec3_add(camera.position, camera.direction);
 
   // create view matrix
-  view_matrix =
-      mat4_look_at(camera.position, mesh.translation, (vec3_t){0, 1, 0});
+  view_matrix = mat4_look_at(camera.position, target, up_direction);
 
   mat4_t scale_matrix =
       mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
