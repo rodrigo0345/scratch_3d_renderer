@@ -35,5 +35,6 @@ typedef struct {
 vec3_t get_normal(triangle_3d_t t);
 void draw_triangle(triangle_2d_t triangle, uint32_t color, Draw_mode draw_mode);
 void draw_textured_triangle(triangle_2d_t triangle, Draw_mode draw_mode);
+void triangle_fill_optimized(triangle_2d_t t, uint32_t color);
 
 #endif

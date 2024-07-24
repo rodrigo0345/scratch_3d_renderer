@@ -27,14 +27,14 @@ void free_resources(void) {
 
 int get_num_meshes(void) { return mesh_count; }
 
-mesh_t* get_mesh(int mesh_index){
-  return &meshes[mesh_index];
-}
+mesh_t *get_mesh(int mesh_index) { return &meshes[mesh_index]; }
 
 void load_mesh(char *obj_path, char *tex_path, vec3_t scale, vec3_t translation,
                vec3_t rotation) {
-  load_mesh_obj_data(&meshes[mesh_count], obj_path);
-  load_mesh_png_data(&meshes[mesh_count], tex_path);
+  load_mesh_obj_data(&meshes[mesh_count], obj_path, tex_path != NULL);
+
+  if (tex_path != NULL)
+    load_mesh_png_data(&meshes[mesh_count], tex_path);
 
   meshes[mesh_count].scale = scale;
   meshes[mesh_count].translation = translation;
@@ -53,7 +53,7 @@ void load_mesh_png_data(mesh_t *mesh, char *filename) {
   }
 }
 
-void load_mesh_obj_data(mesh_t *mesh, const char *filename) {
+void load_mesh_obj_data(mesh_t *mesh, const char *filename, bool tex) {
   FILE *file;
   file = fopen(filename, "r");
   char line[1024];
@@ -87,6 +87,19 @@ void load_mesh_obj_data(mesh_t *mesh, const char *filename) {
       int vertex_indices[3];
       int texture_indices[3];
       int normal_indices[3];
+      if (!tex) {
+        sscanf(line, "f %d %d %d", &vertex_indices[0], &vertex_indices[1],&vertex_indices[2]);
+        face_t face = {.a = vertex_indices[0] - 1,
+                       .b = vertex_indices[1] - 1,
+                       .c = vertex_indices[2] - 1,
+                       .a_uv = 0,
+                       .b_uv = 0,
+                       .c_uv = 0,
+                       .color = 0xFFFFFFFF};
+        array_push(mesh->mesh_faces, face);
+        continue;
+      }
+
       sscanf(line, "f %d/%d/%d %d/%d/%d %d/%d/%d", &vertex_indices[0],
              &texture_indices[0], &normal_indices[0], &vertex_indices[1],
              &texture_indices[1], &normal_indices[1], &vertex_indices[2],

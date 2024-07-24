@@ -22,6 +22,8 @@
 
 #define MAX_TRIANGLES_PER_MESH 10000
 
+static bool optimized_rendering = true;
+
 triangle_2d_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
 int num_triangles_to_render = 0;
 
@@ -43,7 +45,7 @@ void setup(void) {
   // init the perspective matrix
   float aspect_ratio_y = get_window_height() / (float)get_window_width();
   float aspect_ratio_x = get_window_width() / (float)get_window_height();
-  float fovy = 3.141549 / 3;                                  // 60 deg
+  float fovy = 3.141549 / 4;                                  // 60 deg
   float fovx = atan(tan(fovy / 2.0) * aspect_ratio_x) * 2.0f; // 60 deg
   float znear = 0.1f;
   float zfar = 100.0f;
@@ -59,6 +61,9 @@ void setup(void) {
 
   load_mesh("./assets/runway.obj", "./assets/runway.png", vec3_new(1, 1, 1),
             vec3_new(0, -1, 16), vec3_new(0, 0, 0));
+
+  // load_mesh("./assets/bunny.obj", NULL, vec3_new(4, 4, 4), vec3_new(0, 0, 8),
+  //           vec3_new(0, 0, 0));
 }
 
 // this was just for fun
@@ -128,17 +133,19 @@ void process_input(void) {
       } else if (event.key.keysym.sym == SDLK_s) {
         camera_go_back(delta_time);
       } else if (event.key.keysym.sym == SDLK_a) {
-        camera_yaw_left(5.0, delta_time);
+        camera_yaw_left(1.0, delta_time);
       } else if (event.key.keysym.sym == SDLK_d) {
-        camera_yaw_right(5.0, delta_time);
+        camera_yaw_right(1.0, delta_time);
       } else if (event.key.keysym.sym == SDLK_LSHIFT) {
         camera_go_up(delta_time);
       } else if (event.key.keysym.sym == SDLK_LCTRL) {
         camera_go_down(delta_time);
       } else if (event.key.keysym.sym == SDLK_UP) {
-        camera_pitch_up(5.0, delta_time);
+        camera_pitch_up(1.0, delta_time);
       } else if (event.key.keysym.sym == SDLK_DOWN) {
-        camera_pitch_down(5.0, delta_time);
+        camera_pitch_down(1.0, delta_time);
+      } else if (event.key.keysym.sym == SDLK_p) {
+        optimized_rendering = !optimized_rendering;
       }
       break;
     }
@@ -350,7 +357,8 @@ void render(void) {
     if (mode == TEXTURED || mode == TEXTURED_WIRE) {
       draw_textured_triangle(triangle, mode);
     } else {
-      draw_triangle(triangle, triangle.color, mode);
+      optimized_rendering ? triangle_fill_optimized(triangle, triangle.color)
+                          : draw_triangle(triangle, triangle.color, mode);
     }
 
     triangles_to_render[i] = (triangle_2d_t){

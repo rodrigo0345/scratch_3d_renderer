@@ -40,5 +40,5 @@ void camera_pitch_down(float angle, float delta_time) {
   camera.pitch_angle += angle * delta_time;
 }
 
-void camera_go_up(float delta_time) { camera.position.y += 10.0 * delta_time; }
-void camera_go_down(float delta_time) { camera.position.y -= 10.0 * delta_time; }
+void camera_go_up(float delta_time) { camera.position.y += 5.0 * delta_time; }
+void camera_go_down(float delta_time) { camera.position.y -= 5.0 * delta_time; }

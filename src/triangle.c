@@ -8,6 +8,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
 ///////////////////////////////////////////////////////////////////////////////
 // Return the barycentric weights alpha, beta, and gamma for point p
 ///////////////////////////////////////////////////////////////////////////////
@@ -404,5 +407,93 @@ void draw_textured_triangle(triangle_2d_t triangle, Draw_mode draw_mode) {
     draw_line(x0, y0, x1, y1, 0xFFFFFFFF);
     draw_line(x0, y0, x2, y2, 0xFFFFFFFF);
     draw_line(x1, y1, x2, y2, 0xFFFFFFFF);
+  }
+}
+
+bool is_top_left(vec2_t *start, vec2_t *end) {
+  vec2_t edge = {end->x - start->x, end->y - start->y};
+  bool is_top_edge = edge.y == 0 && edge.x > 0;
+  bool is_left_edge = edge.y < 0;
+  return is_top_edge || is_left_edge;
+}
+
+float edge_cross(vec2_t *a, vec2_t *b, vec2_t *p) {
+  vec2_t ab = {b->x - a->x, b->y - a->y};
+  vec2_t ap = {p->x - a->x, p->y - a->y};
+  return (float)(ab.x * ap.y - ab.y * ap.x);
+}
+
+void triangle_fill_optimized(triangle_2d_t t, uint32_t color) {
+  vec2_t v0 = (vec2_t){.x = t.points[0].x, .y = t.points[0].y};
+  vec2_t v1 = (vec2_t){.x = t.points[1].x, .y = t.points[1].y};
+  vec2_t v2 = (vec2_t){.x = t.points[2].x, .y = t.points[2].y};
+
+  int x_min = floor(MIN(MIN(v0.x, v1.x), v2.x));
+  int y_min = floor(MIN(MIN(v0.y, v1.y), v2.y));
+  int x_max = ceil(MAX(MAX(v0.x, v1.x), v2.x));
+  int y_max = ceil(MAX(MAX(v0.y, v1.y), v2.y));
+
+  // Compute the constant delta_s that will be used for the horizontal and
+  // vertical steps
+  float delta_w0_col = (v1.y - v2.y);
+  float delta_w1_col = (v2.y - v0.y);
+  float delta_w2_col = (v0.y - v1.y);
+
+  float delta_w0_row = (v2.x - v1.x);
+  float delta_w1_row = (v0.x - v2.x);
+  float delta_w2_row = (v1.x - v0.x);
+
+  // Compute the area of the entire triangle/parallelogram
+  float area = edge_cross(&v0, &v1, &v2);
+
+  // Fill convention (top-left rasterization rule)
+  float bias0 = is_top_left(&v1, &v2) ? 0 : -1;
+  float bias1 = is_top_left(&v2, &v0) ? 0 : -1;
+  float bias2 = is_top_left(&v0, &v1) ? 0 : -1;
+
+  vec2_t p0 = {x_min + .5f, y_min + .5f};
+  float w0_row = edge_cross(&v1, &v2, &p0) + -0.00001;
+  float w1_row = edge_cross(&v2, &v0, &p0) + -0.00001;
+  float w2_row = edge_cross(&v0, &v1, &p0) + -0.00001;
+
+  // Loop all candidate pixels inside the bounding box
+  for (int y = y_min; y <= y_max; y++) {
+    float w0 = w0_row;
+    float w1 = w1_row;
+    float w2 = w2_row;
+    for (int x = x_min; x <= x_max; x++) {
+      bool is_inside = w0 >= 0 && w1 >= 0 && w2 >= 0;
+
+      if (is_inside) {
+        // Compute the barycentric coordinates
+        float alpha = (float)w0 / area;
+        float beta = (float)w1 / area;
+        float gamma = (float)w2 / area;
+
+        // Interpolate the reciprocal of w
+        float interpolated_reciprocal_w =
+            1 - (alpha * (1 / (float)t.points[0].w) + 
+                 beta * (1 / (float)t.points[1].w) + 
+                 gamma * (1 / (float)t.points[2].w));
+
+        if (interpolated_reciprocal_w == -NAN) {
+          printf("A: %f\n", alpha);
+          printf("B: %f\n", beta);
+          printf("G: %f\n", gamma);
+        }
+
+        // Check if the current pixel is in front
+        if (interpolated_reciprocal_w < get_zbuffer_at(x, y)) {
+          draw_pixel(x, y, color);
+          update_zbuffer_at(x, y, interpolated_reciprocal_w);
+        }
+      }
+      w0 += delta_w0_col;
+      w1 += delta_w1_col;
+      w2 += delta_w2_col;
+    }
+    w0_row += delta_w0_row;
+    w1_row += delta_w1_row;
+    w2_row += delta_w2_row;
   }
 }
