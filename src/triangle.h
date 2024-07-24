@@ -20,6 +20,7 @@ typedef struct {
 typedef struct {
   vec4_t points[3];
   tex2_t texcoords[3];
+  upng_t *texture;
   uint32_t color;
 } triangle_2d_t;
 
@@ -33,7 +34,6 @@ typedef struct {
 
 vec3_t get_normal(triangle_3d_t t);
 void draw_triangle(triangle_2d_t triangle, uint32_t color, Draw_mode draw_mode);
-void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
-                            Draw_mode draw_mode);
+void draw_textured_triangle(triangle_2d_t triangle, Draw_mode draw_mode);
 
 #endif

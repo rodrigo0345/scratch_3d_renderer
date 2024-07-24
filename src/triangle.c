@@ -1,9 +1,11 @@
 #include "triangle.h"
 #include "display.h"
 #include "texture.h"
+#include "upng.h"
 #include "vector.h"
 #include <assert.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,12 +105,13 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
     swap(&w0, &w1, sizeof(float));
   }
 
-  if(draw_mode == WIRE || draw_mode == SOLID_WIRE){
+  if (draw_mode == WIRE || draw_mode == SOLID_WIRE) {
     draw_line(x0, y0, x1, y1, 0xFFFFFFFF);
     draw_line(x1, y1, x2, y2, 0xFFFFFFFF);
     draw_line(x2, y2, x0, y0, 0xFFFFFFFF);
 
-    if(draw_mode == WIRE) return;
+    if (draw_mode == WIRE)
+      return;
   }
 
   // Create vector points and texture coords after we sort the vertices
@@ -153,10 +156,12 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
         float interpolated_reciprocal_w =
             1.0 - (inv_w_a * alpha + inv_w_b * beta + inv_w_c * gamma);
 
-        if(interpolated_reciprocal_w < get_z_buffer()[y * get_window_width() + x]){
+        if (interpolated_reciprocal_w <
+            get_z_buffer()[y * get_window_width() + x]) {
           // Draw our pixel with the color that comes from the texture
           draw_pixel(x, y, color);
-          get_z_buffer()[y * get_window_width() + x] = interpolated_reciprocal_w;
+          get_z_buffer()[y * get_window_width() + x] =
+              interpolated_reciprocal_w;
         }
       }
     }
@@ -195,10 +200,12 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
         float interpolated_reciprocal_w =
             1.0 - (inv_w_a * alpha + inv_w_b * beta + inv_w_c * gamma);
 
-        if(interpolated_reciprocal_w < get_z_buffer()[y * get_window_width() + x]){
+        if (interpolated_reciprocal_w <
+            get_z_buffer()[y * get_window_width() + x]) {
           // Draw our pixel with the color that comes from the texture
           draw_pixel(x, y, color);
-          get_z_buffer()[y * get_window_width() + x] = interpolated_reciprocal_w;
+          get_z_buffer()[y * get_window_width() + x] =
+              interpolated_reciprocal_w;
         }
       }
     }
@@ -218,9 +225,13 @@ float triangle_area(vec2_t a, vec2_t b, vec2_t c) {
 ///////////////////////////////////////////////////////////////////////////////
 // Function to draw the textured pixel at position x and y using interpolation
 ///////////////////////////////////////////////////////////////////////////////
-void draw_texel(int x, int y, uint32_t *texture, vec4_t point_a, vec4_t point_b,
+void draw_texel(int x, int y, upng_t *texture, vec4_t point_a, vec4_t point_b,
                 vec4_t point_c, float u0, float v0, float u1, float v1,
                 float u2, float v2) {
+
+  int texture_height = upng_get_height(texture); 
+  int texture_width = upng_get_width(texture);
+
   vec2_t point_p = {x, y};
   vec3_t weights =
       barycentric_weights((vec2_t){.x = point_a.x, .y = point_a.y},
@@ -255,7 +266,9 @@ void draw_texel(int x, int y, uint32_t *texture, vec4_t point_a, vec4_t point_b,
   interpolated_reciprocal_w = 1.0 - interpolated_reciprocal_w;
 
   if (interpolated_reciprocal_w < get_z_buffer()[get_window_width() * y + x]) {
-    draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+    uint32_t *tex_buffer = (uint32_t*)upng_get_buffer(texture);
+
+    draw_pixel(x, y, tex_buffer[(texture_width * tex_y) + tex_x]);
 
     // update z buffer with 1/w
     get_z_buffer()[(get_window_width() * y) + x] = interpolated_reciprocal_w;
@@ -282,8 +295,7 @@ void draw_texel(int x, int y, uint32_t *texture, vec4_t point_a, vec4_t point_b,
 //                    v2
 //
 ///////////////////////////////////////////////////////////////////////////////
-void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
-                            Draw_mode draw_mode) {
+void draw_textured_triangle(triangle_2d_t triangle, Draw_mode draw_mode) {
   int x0 = triangle.points[0].x, y0 = triangle.points[0].y;
   float z0 = triangle.points[0].z, w0 = triangle.points[0].w;
 
@@ -326,7 +338,7 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
     swap(&v0, &v1, sizeof(float));
   }
 
-  // Create vector points and texture coords after we sort the vertices
+  // Create vector points and texture coords aft we sort the vertices
   vec4_t point_a = {x0, y0, z0, w0};
   vec4_t point_b = {x1, y1, z1, w1};
   vec4_t point_c = {x2, y2, z2, w2};
@@ -358,8 +370,8 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
 
       for (int x = x_start; x < x_end; x++) {
         // Draw our pixel with the color that comes from the texture
-        draw_texel(x, y, texture, point_a, point_b, point_c, a_uv.x, a_uv.y,
-                   b_uv.x, b_uv.y, c_uv.x, c_uv.y);
+        draw_texel(x, y, triangle.texture, point_a, point_b, point_c, a_uv.x,
+                   a_uv.y, b_uv.x, b_uv.y, c_uv.x, c_uv.y);
       }
     }
   }
@@ -387,8 +399,8 @@ void draw_textured_triangle(triangle_2d_t triangle, uint32_t *texture,
 
       for (int x = x_start; x < x_end; x++) {
         // Draw our pixel with the color that comes from the texture
-        draw_texel(x, y, texture, point_a, point_b, point_c, a_uv.x, a_uv.y,
-                   b_uv.x, b_uv.y, c_uv.x, c_uv.y);
+        draw_texel(x, y, triangle.texture, point_a, point_b, point_c, a_uv.x,
+                   a_uv.y, b_uv.x, b_uv.y, c_uv.x, c_uv.y);
       }
     }
   }

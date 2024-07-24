@@ -30,3 +30,9 @@ triangle_3d_t apply_directional_light(triangle_3d_t triangle, light_t light) {
 
   return triangle;
 }
+
+light_t init_light(vec3_t direction){
+  return (light_t){
+    .direction = direction
+  };
+}

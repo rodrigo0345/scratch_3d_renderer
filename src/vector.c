@@ -8,6 +8,14 @@ float vec2_length(vec2_t v) {
     return sqrt(v.x * v.x + v.y * v.y);
 }
 
+vec3_t vec3_new(float x, float y, float z){
+  return (vec3_t){
+    .x = x,
+    .y = y,
+    .z = z
+  };
+}
+
 vec2_t vec2_add(vec2_t a, vec2_t b) {
     vec2_t result = {
         .x = a.x + b.x,

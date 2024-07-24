@@ -26,6 +26,8 @@ vec3_t vec3_rotate_x(vec3_t v, float angle);
 vec3_t vec3_rotate_y(vec3_t v, float angle);
 vec3_t vec3_rotate_z(vec3_t v, float angle);
 
+vec3_t vec3_new(float x, float y, float z);
+
 float vec2_length(vec2_t v);
 float vec3_length(vec3_t v);
 

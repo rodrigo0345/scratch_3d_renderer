@@ -11,5 +11,6 @@ typedef struct {
 
 color_t light_apply_intensity(color_t original_color, float percentage_factor);
 triangle_3d_t apply_directional_light(triangle_3d_t triangle, light_t light);
+light_t init_light(vec3_t direction);
 
 #endif

@@ -1,6 +1,4 @@
 #include "display.h"
-#include "texture.h"
-#include "upng.h"
 #include <SDL2/SDL_video.h>
 #include <math.h>
 #include <stdint.h>
@@ -33,6 +31,13 @@ void toggle_classic_mode(void){
   initialize_window();
 }
 
+static int window_mode = SDL_WINDOW_FULLSCREEN;
+
+void toggle_windowed_mode(void) {
+  window_mode = window_mode == SDL_WINDOW_FULLSCREEN? 0: SDL_WINDOW_FULLSCREEN; 
+  initialize_window();
+}
+
 bool initialize_window(void) {
   // creating a window
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -49,9 +54,15 @@ bool initialize_window(void) {
   int fullscreen_width = display_mode.w;
   int fullscreen_height = display_mode.h;
 
+  if(window_mode == 0){
+    fullscreen_height = 600;
+    fullscreen_width = 800;
+  }
+
   if(!classic_mode){
     window_width = fullscreen_width;
     window_height = fullscreen_height;
+
   } else {
     window_width = fullscreen_width / 3;
     window_height = fullscreen_height / 3;
@@ -59,9 +70,16 @@ bool initialize_window(void) {
 
   if(window) SDL_DestroyWindow(window);
 
-  window = SDL_CreateWindow("Renderer", SDL_WINDOWPOS_CENTERED,
-                            SDL_WINDOWPOS_CENTERED, fullscreen_width, fullscreen_height,
-                            SDL_WINDOW_BORDERLESS);
+  if(window_mode == SDL_WINDOW_FULLSCREEN){
+    window = SDL_CreateWindow("Renderer", SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED, fullscreen_width, fullscreen_height,
+                              window_mode);
+    // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+  } else {
+    window = SDL_CreateWindow("Renderer", SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED, fullscreen_width, fullscreen_height,
+                              window_mode);
+  }
 
   if (!window) {
     fprintf(stderr, "Error creating SDL Window");
@@ -75,7 +93,6 @@ bool initialize_window(void) {
     fprintf(stderr, "Error creating SDL Renderer");
     return false;
   }
-  // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
   //
   if(color_buffer != NULL) free(color_buffer);
   color_buffer =
@@ -122,7 +139,6 @@ void render_color_buffer(void) {
 }
 
 void destroy_window(void) {
-  upng_free(png_texture);
   free(window);
   SDL_DestroyTexture(color_buffer_texture);
   SDL_DestroyWindow(window);
