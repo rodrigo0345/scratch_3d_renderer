@@ -40,8 +40,6 @@ void swap(void *a, void *b, size_t size);
 SDL_Renderer* get_renderer(void);
 uint32_t* get_color_buffer(void);
 float* get_z_buffer(void);
-
-void set_window_height(int h);
-void set_window_width(int w);
+void toggle_classic_mode(void);
 
 #endif // !DISPLAY_H

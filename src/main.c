@@ -92,21 +92,9 @@ void process_input(void) {
     case SDL_KEYDOWN:
       if (event.key.keysym.sym == SDLK_ESCAPE) {
         is_running = false;
-        } else if(event.key.keysym.sym == SDLK_0) {
-
-          if(get_window_width() > 300){
-            // toggle classic mode
-            set_window_width(300);
-            set_window_height(200);
-            setup();
-            break;
-          }
-
-          set_window_width(1920);
-          set_window_height(1080);
-          setup();
-          break;
-
+      } else if (event.key.keysym.sym == SDLK_0) {
+        toggle_classic_mode();
+        break;
       } else if (event.key.keysym.sym == SDLK_1) {
         // display wireframe and small dot
         mode = WIRE_DOT;
@@ -369,6 +357,7 @@ void render(void) {
 }
 
 int main(void) {
+
   setup();
   while (is_running) {
     process_input();

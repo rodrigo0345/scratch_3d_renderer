@@ -16,16 +16,10 @@ static uint32_t *color_buffer = NULL;
 static SDL_Texture *color_buffer_texture = NULL;
 static float *z_buffer = NULL;
 
-static int window_height = 200;
-static int window_width = 300;
+static int window_height;
+static int window_width;
 
-void set_window_height(int h){
-  window_height = h;
-}
-
-void set_window_width(int w){
-  window_width = w;
-}
+static bool classic_mode = false;
 
 int get_window_width(void) { return window_width; }
 int get_window_height(void) { return window_height; }
@@ -33,6 +27,11 @@ SDL_Renderer *get_renderer(void) { return renderer; }
 
 uint32_t *get_color_buffer(void) { return color_buffer; }
 float *get_z_buffer(void) { return z_buffer; }
+
+void toggle_classic_mode(void){
+  classic_mode = classic_mode ? false: true;
+  initialize_window();
+}
 
 bool initialize_window(void) {
   // creating a window
@@ -49,6 +48,16 @@ bool initialize_window(void) {
 
   int fullscreen_width = display_mode.w;
   int fullscreen_height = display_mode.h;
+
+  if(!classic_mode){
+    window_width = fullscreen_width;
+    window_height = fullscreen_height;
+  } else {
+    window_width = fullscreen_width / 3;
+    window_height = fullscreen_height / 3;
+  }
+
+  if(window) SDL_DestroyWindow(window);
 
   window = SDL_CreateWindow("Renderer", SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, fullscreen_width, fullscreen_height,
