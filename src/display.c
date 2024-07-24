@@ -24,18 +24,38 @@ int get_window_height(void) { return window_height; }
 SDL_Renderer *get_renderer(void) { return renderer; }
 
 uint32_t *get_color_buffer(void) { return color_buffer; }
-float *get_z_buffer(void) { return z_buffer; }
 
-void toggle_classic_mode(void){
-  classic_mode = classic_mode ? false: true;
+void toggle_classic_mode(void) {
+  classic_mode = classic_mode ? false : true;
   initialize_window();
 }
 
 static int window_mode = SDL_WINDOW_FULLSCREEN;
 
 void toggle_windowed_mode(void) {
-  window_mode = window_mode == SDL_WINDOW_FULLSCREEN? 0: SDL_WINDOW_FULLSCREEN; 
+  window_mode =
+      window_mode == SDL_WINDOW_FULLSCREEN ? 0 : SDL_WINDOW_FULLSCREEN;
   initialize_window();
+}
+
+void clear_z_buffer(void) {
+    for (int i = 0; i < window_width * window_height; i++) {
+        z_buffer[i] = 1.0;
+    }
+}
+
+float get_zbuffer_at(int x, int y) {
+    if (x < 0 || x >= window_width || y < 0 || y >= window_height) {
+        return 1.0;
+    }
+    return z_buffer[(window_width * y) + x];
+}
+
+void update_zbuffer_at(int x, int y, float value) {
+    if (x < 0 || x >= window_width || y < 0 || y >= window_height) {
+        return;
+    }
+    z_buffer[(window_width * y) + x] = value;
 }
 
 bool initialize_window(void) {
@@ -54,12 +74,12 @@ bool initialize_window(void) {
   int fullscreen_width = display_mode.w;
   int fullscreen_height = display_mode.h;
 
-  if(window_mode == 0){
+  if (window_mode == 0) {
     fullscreen_height = 600;
     fullscreen_width = 800;
   }
 
-  if(!classic_mode){
+  if (!classic_mode) {
     window_width = fullscreen_width;
     window_height = fullscreen_height;
 
@@ -68,17 +88,18 @@ bool initialize_window(void) {
     window_height = fullscreen_height / 3;
   }
 
-  if(window) SDL_DestroyWindow(window);
+  if (window)
+    SDL_DestroyWindow(window);
 
-  if(window_mode == SDL_WINDOW_FULLSCREEN){
+  if (window_mode == SDL_WINDOW_FULLSCREEN) {
     window = SDL_CreateWindow("Renderer", SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, fullscreen_width, fullscreen_height,
-                              window_mode);
+                              SDL_WINDOWPOS_CENTERED, fullscreen_width,
+                              fullscreen_height, window_mode);
     // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
   } else {
     window = SDL_CreateWindow("Renderer", SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED, fullscreen_width, fullscreen_height,
-                              window_mode);
+                              SDL_WINDOWPOS_CENTERED, fullscreen_width,
+                              fullscreen_height, window_mode);
   }
 
   if (!window) {
@@ -94,12 +115,14 @@ bool initialize_window(void) {
     return false;
   }
   //
-  if(color_buffer != NULL) free(color_buffer);
+  if (color_buffer != NULL)
+    free(color_buffer);
   color_buffer =
       (uint32_t *)malloc(sizeof(uint32_t) * window_height * window_width);
 
-  if(z_buffer != NULL) free(z_buffer);
-  z_buffer = (float *)malloc(sizeof(float) * window_height * window_width);
+  if (z_buffer != NULL)
+    free(z_buffer);
+  z_buffer = (float *)malloc(sizeof(float) * fullscreen_height * fullscreen_width);
 
   if (!color_buffer) {
     fprintf(stderr, "Error initializing frame buffer");
@@ -120,14 +143,6 @@ bool initialize_window(void) {
 void clear_color_buffer(uint32_t color) {
   for (int y = 0; y < window_height * window_width; y++) {
     color_buffer[y] = color;
-  }
-}
-
-void clear_z_buffer() {
-  for (int y = 0; y < window_height; y++) {
-    for (int x = 0; x < window_width; x++) {
-      z_buffer[(window_width * y) + x] = 1.0;
-    }
   }
 }
 

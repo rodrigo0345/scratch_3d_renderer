@@ -156,12 +156,10 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
         float interpolated_reciprocal_w =
             1.0 - (inv_w_a * alpha + inv_w_b * beta + inv_w_c * gamma);
 
-        if (interpolated_reciprocal_w <
-            get_z_buffer()[y * get_window_width() + x]) {
+        if (interpolated_reciprocal_w < get_zbuffer_at(x, y)) {
           // Draw our pixel with the color that comes from the texture
           draw_pixel(x, y, color);
-          get_z_buffer()[y * get_window_width() + x] =
-              interpolated_reciprocal_w;
+          update_zbuffer_at(x, y, interpolated_reciprocal_w);
         }
       }
     }
@@ -187,7 +185,6 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
         swap(&x_start, &x_end,
              sizeof(int)); // swap if x_start is to the right of x_end
       }
-
       for (int x = x_start; x < x_end; x++) {
         vec3_t weights = barycentric_weights(
             (vec2_t){.x = point_a.x, .y = point_a.y},
@@ -200,12 +197,10 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
         float interpolated_reciprocal_w =
             1.0 - (inv_w_a * alpha + inv_w_b * beta + inv_w_c * gamma);
 
-        if (interpolated_reciprocal_w <
-            get_z_buffer()[y * get_window_width() + x]) {
+        if (interpolated_reciprocal_w < get_zbuffer_at(x, y)) {
           // Draw our pixel with the color that comes from the texture
           draw_pixel(x, y, color);
-          get_z_buffer()[y * get_window_width() + x] =
-              interpolated_reciprocal_w;
+          // set_z_buffer(x, y, interpolated_reciprocal_w);
         }
       }
     }
@@ -229,7 +224,7 @@ void draw_texel(int x, int y, upng_t *texture, vec4_t point_a, vec4_t point_b,
                 vec4_t point_c, float u0, float v0, float u1, float v1,
                 float u2, float v2) {
 
-  int texture_height = upng_get_height(texture); 
+  int texture_height = upng_get_height(texture);
   int texture_width = upng_get_width(texture);
 
   vec2_t point_p = {x, y};
@@ -265,13 +260,13 @@ void draw_texel(int x, int y, upng_t *texture, vec4_t point_a, vec4_t point_b,
 
   interpolated_reciprocal_w = 1.0 - interpolated_reciprocal_w;
 
-  if (interpolated_reciprocal_w < get_z_buffer()[get_window_width() * y + x]) {
-    uint32_t *tex_buffer = (uint32_t*)upng_get_buffer(texture);
+  if (interpolated_reciprocal_w < get_zbuffer_at(x, y)) {
+    uint32_t *tex_buffer = (uint32_t *)upng_get_buffer(texture);
 
     draw_pixel(x, y, tex_buffer[(texture_width * tex_y) + tex_x]);
 
     // update z buffer with 1/w
-    get_z_buffer()[(get_window_width() * y) + x] = interpolated_reciprocal_w;
+    update_zbuffer_at(x, y, interpolated_reciprocal_w);
   }
 }
 

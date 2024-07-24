@@ -23,7 +23,6 @@ void free_resources(void) {
   }
   mesh_count = 0;
   free(get_color_buffer());
-  free(get_z_buffer());
 }
 
 int get_num_meshes(void) { return mesh_count; }

@@ -52,10 +52,13 @@ void setup(void) {
   initialize_frustum_planes(fovx, fovy, znear, zfar);
 
   load_mesh("./assets/f22.obj", "./assets/f22.png", vec3_new(1, 1, 1),
-            vec3_new(-4, 0, 8), vec3_new(0, 0, 0));
+            vec3_new(-2, 0, 4), vec3_new(0, 3.1416 / 2, 0));
 
   load_mesh("./assets/efa.obj", "./assets/efa.png", vec3_new(1, 1, 1),
-            vec3_new(4, 0, 8), vec3_new(0, 0, 0));
+            vec3_new(2, 0, 4), vec3_new(0, 3.1416 / 2, 0));
+
+  load_mesh("./assets/runway.obj", "./assets/runway.png", vec3_new(1, 1, 1),
+            vec3_new(0, -1, 16), vec3_new(0, 0, 0));
 }
 
 // this was just for fun

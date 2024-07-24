@@ -1,3 +1,5 @@
+![banner](https://github.com/rodrigo0345/c_renderer/blob/main/assets/highlight.png)
+
 # Cool Rendering Engine
 
 Welcome to the Cool Rendering Engine! This project was built from scratch and uses a simple C array as its core rasterization buffer. It features real-time 3D rendering with basic lighting, shading, and object loading.
