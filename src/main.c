@@ -18,8 +18,6 @@
 #include <SDL2/SDL_video.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #define MAX_TRIANGLES_PER_MESH 10000
@@ -45,27 +43,12 @@ int mouse_x = .0f;
 int mouse_y = .0f;
 
 void setup(void) {
-  color_buffer =
-      (uint32_t *)malloc(sizeof(uint32_t) * window_height * window_width);
 
-  z_buffer = (float *)malloc(sizeof(float) * window_height * window_width);
-
-  if (!color_buffer) {
-    fprintf(stderr, "Error initializing frame buffer");
-    return;
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // buffer texture is going to be responsible for
-  // translating our color_buffer to SDL
-  ////////////////////////////////////////////////////////////////
-  color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
-                                           SDL_TEXTUREACCESS_STREAMING,
-                                           window_width, window_height);
+  is_running = initialize_window();
 
   // init the perspective matrix
-  float aspect_ratio_y = window_height / (float)window_width;
-  float aspect_ratio_x = window_width / (float)window_height;
+  float aspect_ratio_y = get_window_height() / (float)get_window_width();
+  float aspect_ratio_x = get_window_width() / (float)get_window_height();
   float fovy = 3.141549 / 3;                                  // 60 deg
   float fovx = atan(tan(fovy / 2.0) * aspect_ratio_x) * 2.0f; // 60 deg
   float znear = 0.1f;
@@ -98,97 +81,85 @@ Culling_mode culling = ON;
 
 void process_input(void) {
   SDL_Event event;
-  SDL_PollEvent(&event);
-  SDL_GetMouseState(&mouse_x, &mouse_y);
+  while (SDL_PollEvent(&event)) {
 
-  switch (event.type) {
-  case SDL_QUIT:
-    is_running = false;
-    break;
-  case SDL_KEYDOWN:
-    if (event.key.keysym.sym == SDLK_ESCAPE) {
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+
+    switch (event.type) {
+    case SDL_QUIT:
       is_running = false;
-    }
-    if (event.key.keysym.sym == SDLK_w) {
-      x_translate += 1;
-    }
-    if (event.key.keysym.sym == SDLK_s) {
-      x_translate -= 1;
-    }
-    if (event.key.keysym.sym == SDLK_1) {
-      // display wireframe and small dot
-      mode = WIRE_DOT;
-    }
-    if (event.key.keysym.sym == SDLK_2) {
-      // wireframe lines
-      mode = WIRE;
-    }
-    if (event.key.keysym.sym == SDLK_3) {
-      // solid
-      mode = SOLID;
-    }
-    if (event.key.keysym.sym == SDLK_4) {
-      // solid and wire
-      mode = SOLID_WIRE;
-    }
-    if (event.key.keysym.sym == SDLK_5) {
-      // solid and wire
-      mode = TEXTURED;
-    }
-    if (event.key.keysym.sym == SDLK_6) {
-      // solid and wire
-      mode = TEXTURED_WIRE;
-    }
-    // if (event.key.keysym.sym == SDLK_c) {
-    //   // back-face culling
-    //   culling = ON;
-    // }
-    // if (event.key.keysym.sym == SDLK_d) {
-    //   // no back-face culling
-    //   culling = OFF;
-    // }
-    if (event.key.keysym.sym == SDLK_f) {
-      const char *filepath = "assets/f22.obj";
-      // const char* filepath = "assets/cube.obj";
-      // const char* filepath = "assets/tank.obj";
-      load_png_texture_data("assets/f22.png");
-      load_obj_file_data(filepath);
-    }
-    if (event.key.keysym.sym == SDLK_k) {
-      const char *filepath = "assets/cube.obj";
-      // const char* filepath = "assets/tank.obj";
-      load_png_texture_data("assets/cube.png");
-      load_obj_file_data(filepath);
-    }
-    if (event.key.keysym.sym == SDLK_t) {
-      const char *filepath = "assets/drone.obj";
-      load_png_texture_data("assets/drone.png");
-      load_obj_file_data(filepath);
-    }
+      break;
+    case SDL_KEYDOWN:
+      if (event.key.keysym.sym == SDLK_ESCAPE) {
+        is_running = false;
+        } else if(event.key.keysym.sym == SDLK_0) {
 
-    // camera movement
-    if (event.key.keysym.sym == SDLK_w) {
-      camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
-      camera.position = vec3_add(camera.position, camera.forward_velocity);
-    }
-    if (event.key.keysym.sym == SDLK_s) {
-      camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
-      camera.position = vec3_sub(camera.position, camera.forward_velocity);
-    }
-    if (event.key.keysym.sym == SDLK_a) {
-      camera.yaw_angle -= 1.0 * delta_time;
-    }
-    if (event.key.keysym.sym == SDLK_d) {
-      camera.yaw_angle += 1.0 * delta_time;
-    }
-    if (event.key.keysym.sym == SDLK_LSHIFT) {
-      camera.position.y += 1.5 * delta_time;
-    }
-    if (event.key.keysym.sym == SDLK_LCTRL) {
-      camera.position.y -= 1.5 * delta_time;
-    }
+          if(get_window_width() > 300){
+            // toggle classic mode
+            set_window_width(300);
+            set_window_height(200);
+            setup();
+            break;
+          }
 
-    break;
+          set_window_width(1920);
+          set_window_height(1080);
+          setup();
+          break;
+
+      } else if (event.key.keysym.sym == SDLK_1) {
+        // display wireframe and small dot
+        mode = WIRE_DOT;
+      } else if (event.key.keysym.sym == SDLK_2) {
+        // wireframe lines
+        mode = WIRE;
+      } else if (event.key.keysym.sym == SDLK_3) {
+        // solid
+        mode = SOLID;
+      } else if (event.key.keysym.sym == SDLK_4) {
+        // solid and wire
+        mode = SOLID_WIRE;
+      } else if (event.key.keysym.sym == SDLK_5) {
+        // solid and wire
+        mode = TEXTURED;
+      } else if (event.key.keysym.sym == SDLK_6) {
+        // solid and wire
+        mode = TEXTURED_WIRE;
+      } else if (event.key.keysym.sym == SDLK_f) {
+        const char *filepath = "assets/f22.obj";
+        // const char* filepath = "assets/cube.obj";
+        // const char* filepath = "assets/tank.obj";
+        load_png_texture_data("assets/f22.png");
+        load_obj_file_data(filepath);
+      } else if (event.key.keysym.sym == SDLK_k) {
+        const char *filepath = "assets/cube.obj";
+        // const char* filepath = "assets/tank.obj";
+        load_png_texture_data("assets/cube.png");
+        load_obj_file_data(filepath);
+      } else if (event.key.keysym.sym == SDLK_t) {
+        const char *filepath = "assets/drone.obj";
+        load_png_texture_data("assets/drone.png");
+        load_obj_file_data(filepath);
+      }
+
+      // camera movement
+      else if (event.key.keysym.sym == SDLK_w) {
+        camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+        camera.position = vec3_add(camera.position, camera.forward_velocity);
+      } else if (event.key.keysym.sym == SDLK_s) {
+        camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+        camera.position = vec3_sub(camera.position, camera.forward_velocity);
+      } else if (event.key.keysym.sym == SDLK_a) {
+        camera.yaw_angle -= 5.0 * delta_time;
+      } else if (event.key.keysym.sym == SDLK_d) {
+        camera.yaw_angle += 5.0 * delta_time;
+      } else if (event.key.keysym.sym == SDLK_UP) {
+        camera.position.y += 5.0 * delta_time;
+      } else if (event.key.keysym.sym == SDLK_DOWN) {
+        camera.position.y -= 5.0 * delta_time;
+      }
+      break;
+    }
   }
 }
 
@@ -335,15 +306,15 @@ void update(void) {
         triangles_after_clipping[t].color = transformed_triangle.color;
 
         // scale into the view
-        projected_points[j].x *= window_width / 2.0f;
-        projected_points[j].y *= window_height / 2.0f;
+        projected_points[j].x *= get_window_width() / 2.0f;
+        projected_points[j].y *= get_window_height() / 2.0f;
 
         // Invert the y values to account for flipped screen y coordenate
         projected_points[j].y *= -1;
 
         // translate the projected points to the middle of the screen
-        projected_points[j].x += (int)(window_width / 2.0f);
-        projected_points[j].y += (int)(window_height / 2.0f);
+        projected_points[j].x += (int)(get_window_width() / 2.0f);
+        projected_points[j].y += (int)(get_window_height() / 2.0f);
       }
 
       transformed_triangle =
@@ -378,6 +349,8 @@ void update(void) {
 }
 
 void render(void) {
+  clear_color_buffer(0xFF000000);
+  clear_z_buffer();
 
   for (int i = 0; i < MAX_TRIANGLES_PER_MESH; i++) {
     triangle_2d_t triangle = triangles_to_render[i];
@@ -392,17 +365,10 @@ void render(void) {
         .color = 0x000000,
     };
   }
-
   render_color_buffer();
-  clear_color_buffer(0xFF000000);
-  clear_z_buffer();
-
-  SDL_RenderPresent(renderer);
 }
 
 int main(void) {
-  is_running = initialize_window();
-
   setup();
   while (is_running) {
     process_input();

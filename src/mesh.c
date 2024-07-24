@@ -132,8 +132,8 @@ void free_resources(void) {
 
   array_free(mesh.vertices);
   array_free(mesh.mesh_faces);
-  free(color_buffer);
-  free(z_buffer);
+  free(get_color_buffer());
+  free(get_z_buffer());
 }
 
 void load_obj_file_data(const char *filename) {

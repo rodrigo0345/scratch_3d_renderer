@@ -1,22 +1,38 @@
 #include "display.h"
 #include "texture.h"
 #include "upng.h"
+#include <SDL2/SDL_video.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
+static SDL_Window *window = NULL;
+static SDL_Renderer *renderer = NULL;
 
 // the color buffer needs to be non implementation specific as each color
 // uses 32bits/4bytes in memory
-uint32_t *color_buffer = NULL;
-SDL_Texture *color_buffer_texture = NULL;
-float* z_buffer = NULL;
+static uint32_t *color_buffer = NULL;
+static SDL_Texture *color_buffer_texture = NULL;
+static float *z_buffer = NULL;
 
-int window_height = 600;
-int window_width = 800;
+static int window_height = 200;
+static int window_width = 300;
+
+void set_window_height(int h){
+  window_height = h;
+}
+
+void set_window_width(int w){
+  window_width = w;
+}
+
+int get_window_width(void) { return window_width; }
+int get_window_height(void) { return window_height; }
+SDL_Renderer *get_renderer(void) { return renderer; }
+
+uint32_t *get_color_buffer(void) { return color_buffer; }
+float *get_z_buffer(void) { return z_buffer; }
 
 bool initialize_window(void) {
   // creating a window
@@ -31,12 +47,12 @@ bool initialize_window(void) {
   // get the main window (0) information
   SDL_GetCurrentDisplayMode(0, &display_mode);
 
-  // window_width = display_mode.w;
-  // window_height = display_mode.h;
+  int fullscreen_width = display_mode.w;
+  int fullscreen_height = display_mode.h;
 
-  window =
-      SDL_CreateWindow("Renderer", SDL_WINDOWPOS_CENTERED,
-                       SDL_WINDOWPOS_CENTERED, window_width, window_height, 0);
+  window = SDL_CreateWindow("Renderer", SDL_WINDOWPOS_CENTERED,
+                            SDL_WINDOWPOS_CENTERED, fullscreen_width, fullscreen_height,
+                            SDL_WINDOW_BORDERLESS);
 
   if (!window) {
     fprintf(stderr, "Error creating SDL Window");
@@ -51,19 +67,37 @@ bool initialize_window(void) {
     return false;
   }
   // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+  //
+  if(color_buffer != NULL) free(color_buffer);
+  color_buffer =
+      (uint32_t *)malloc(sizeof(uint32_t) * window_height * window_width);
+
+  if(z_buffer != NULL) free(z_buffer);
+  z_buffer = (float *)malloc(sizeof(float) * window_height * window_width);
+
+  if (!color_buffer) {
+    fprintf(stderr, "Error initializing frame buffer");
+    return false;
+  }
+
+  ////////////////////////////////////////////////////////////////
+  // buffer texture is going to be responsible for
+  // translating our color_buffer to SDL
+  ////////////////////////////////////////////////////////////////
+  color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
+                                           SDL_TEXTUREACCESS_STREAMING,
+                                           window_width, window_height);
 
   return true;
 }
 
 void clear_color_buffer(uint32_t color) {
-  for (int y = 0; y < window_height; y++) {
-    for (int x = 0; x < window_width; x++) {
-      color_buffer[(window_width * y) + x] = color;
-    }
+  for (int y = 0; y < window_height * window_width; y++) {
+    color_buffer[y] = color;
   }
 }
 
-void clear_z_buffer(){
+void clear_z_buffer() {
   for (int y = 0; y < window_height; y++) {
     for (int x = 0; x < window_width; x++) {
       z_buffer[(window_width * y) + x] = 1.0;
@@ -75,6 +109,7 @@ void render_color_buffer(void) {
   SDL_UpdateTexture(color_buffer_texture, NULL, color_buffer,
                     (int)window_width * sizeof(uint32_t));
   SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
+  SDL_RenderPresent(get_renderer());
 }
 
 void destroy_window(void) {

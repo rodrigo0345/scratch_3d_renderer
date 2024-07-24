@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define FPS 60 
-
 typedef enum {
   WIRE_DOT,
   WIRE,
@@ -23,24 +21,11 @@ typedef enum {
 
 typedef uint32_t color_t;
 
-// how much time each frame needs to take
-// we then need to tell the cpu to wait this time
-#define FRAME_TARGET_TIME (1000 / FPS)
-
-extern SDL_Window *window;
-extern SDL_Renderer *renderer;
-
-// the color buffer needs to be non implementation specific as each color
-// uses 32bits/4bytes in memory
-extern uint32_t *color_buffer;
-extern SDL_Texture *color_buffer_texture;
-extern float* z_buffer;
-
-extern int window_height;
-extern int window_width;
-
 bool initialize_window(void);
 void destroy_window(void);
+
+int get_window_width(void);
+int get_window_height(void);
 
 void clear_color_buffer(uint32_t color);
 void clear_z_buffer();
@@ -52,5 +37,11 @@ void draw_rect(const int x, const int y, const int width, const int height,
 void draw_pixel(const int x, const int y, const uint32_t color);
 void draw_line(const int x0, const int y0, const int x1, const int y1, color_t color);
 void swap(void *a, void *b, size_t size);
+SDL_Renderer* get_renderer(void);
+uint32_t* get_color_buffer(void);
+float* get_z_buffer(void);
+
+void set_window_height(int h);
+void set_window_width(int w);
 
 #endif // !DISPLAY_H

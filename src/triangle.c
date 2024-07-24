@@ -1,5 +1,4 @@
 #include "triangle.h"
-#include "array.h"
 #include "display.h"
 #include "texture.h"
 #include "vector.h"
@@ -154,10 +153,10 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
         float interpolated_reciprocal_w =
             1.0 - (inv_w_a * alpha + inv_w_b * beta + inv_w_c * gamma);
 
-        if(interpolated_reciprocal_w < z_buffer[y * window_width + x]){
+        if(interpolated_reciprocal_w < get_z_buffer()[y * get_window_width() + x]){
           // Draw our pixel with the color that comes from the texture
           draw_pixel(x, y, color);
-          z_buffer[y * window_width + x] = interpolated_reciprocal_w;
+          get_z_buffer()[y * get_window_width() + x] = interpolated_reciprocal_w;
         }
       }
     }
@@ -196,10 +195,10 @@ void draw_triangle(triangle_2d_t triangle, uint32_t color,
         float interpolated_reciprocal_w =
             1.0 - (inv_w_a * alpha + inv_w_b * beta + inv_w_c * gamma);
 
-        if(interpolated_reciprocal_w < z_buffer[y * window_width + x]){
+        if(interpolated_reciprocal_w < get_z_buffer()[y * get_window_width() + x]){
           // Draw our pixel with the color that comes from the texture
           draw_pixel(x, y, color);
-          z_buffer[y * window_width + x] = interpolated_reciprocal_w;
+          get_z_buffer()[y * get_window_width() + x] = interpolated_reciprocal_w;
         }
       }
     }
@@ -255,11 +254,11 @@ void draw_texel(int x, int y, uint32_t *texture, vec4_t point_a, vec4_t point_b,
 
   interpolated_reciprocal_w = 1.0 - interpolated_reciprocal_w;
 
-  if (interpolated_reciprocal_w < z_buffer[window_width * y + x]) {
+  if (interpolated_reciprocal_w < get_z_buffer()[get_window_width() * y + x]) {
     draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
 
     // update z buffer with 1/w
-    z_buffer[(window_width * y) + x] = interpolated_reciprocal_w;
+    get_z_buffer()[(get_window_width() * y) + x] = interpolated_reciprocal_w;
   }
 }
 
