@@ -1,7 +1,7 @@
 
 /renderer
 build/
-/assets/crab.obj
+assets/crab.obj
 /assets/drone.*
 /assets/efa.*
 /assets/f117.*
