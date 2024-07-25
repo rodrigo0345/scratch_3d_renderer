@@ -62,6 +62,9 @@ void setup(void) {
   load_mesh("./assets/runway.obj", "./assets/runway.png", vec3_new(1, 1, 1),
             vec3_new(0, -1, 16), vec3_new(0, 0, 0));
 
+  load_mesh("./assets/crab.obj", "./assets/crab.png", vec3_new(1, 1, 1),
+            vec3_new(-2, 0, 8), vec3_new(0, 0, 0));
+
   // load_mesh("./assets/bunny.obj", NULL, vec3_new(4, 4, 4), vec3_new(0, 0, 8),
   //           vec3_new(0, 0, 0));
 }
@@ -355,7 +358,9 @@ void render(void) {
     triangle_2d_t triangle = triangles_to_render[i];
 
     if (mode == TEXTURED || mode == TEXTURED_WIRE) {
-      draw_textured_triangle(triangle, mode);
+      optimized_rendering
+          ? triangle_fill_texture_optimized(triangle, triangle.color)
+          : draw_textured_triangle(triangle, mode);
     } else {
       optimized_rendering ? triangle_fill_optimized(triangle, triangle.color)
                           : draw_triangle(triangle, triangle.color, mode);

@@ -472,8 +472,8 @@ void triangle_fill_optimized(triangle_2d_t t, uint32_t color) {
 
         // Interpolate the reciprocal of w
         float interpolated_reciprocal_w =
-            1 - (alpha * (1 / (float)t.points[0].w) + 
-                 beta * (1 / (float)t.points[1].w) + 
+            1 - (alpha * (1 / (float)t.points[0].w) +
+                 beta * (1 / (float)t.points[1].w) +
                  gamma * (1 / (float)t.points[2].w));
 
         if (interpolated_reciprocal_w == -NAN) {
@@ -487,6 +487,143 @@ void triangle_fill_optimized(triangle_2d_t t, uint32_t color) {
           draw_pixel(x, y, color);
           update_zbuffer_at(x, y, interpolated_reciprocal_w);
         }
+      }
+      w0 += delta_w0_col;
+      w1 += delta_w1_col;
+      w2 += delta_w2_col;
+    }
+    w0_row += delta_w0_row;
+    w1_row += delta_w1_row;
+    w2_row += delta_w2_row;
+  }
+}
+
+void draw_texel_optimized(int x, int y, upng_t *texture, vec4_t point_a,
+                          vec4_t point_b, vec4_t point_c, float u0, float v0,
+                          float u1, float v1, float u2, float v2, float alpha,
+                          float beta, float gamma,
+                          float interpolated_reciprocal_w) {
+  // Perform the interpolation of all U and V values using barycentric weights
+  float interpolated_u =
+      (u0 * alpha + u1 * beta + u2 * gamma) / interpolated_reciprocal_w;
+  float interpolated_v =
+      (v0 * alpha + v1 * beta + v2 * gamma) / interpolated_reciprocal_w;
+
+  int texture_width = upng_get_width(texture);
+  int texture_height = upng_get_height(texture);
+
+  // Map the UV coordinate to the full texture width and height
+  int tex_x = abs((int)(interpolated_u * texture_width)) % texture_width;
+  int tex_y = abs((int)(interpolated_v * texture_height)) % texture_height;
+
+  if (interpolated_reciprocal_w < get_zbuffer_at(x, y)) {
+    uint32_t *tex_buffer = (uint32_t *)upng_get_buffer(texture);
+    draw_pixel(x, y, tex_buffer[(texture_width * tex_y) + tex_x]);
+    update_zbuffer_at(x, y, interpolated_reciprocal_w);
+  }
+}
+
+void triangle_fill_texture_optimized(triangle_2d_t t, uint32_t color) {
+  int x0 = t.points[0].x, y0 = t.points[0].y;
+  float z0 = t.points[0].z, w0 = t.points[0].w;
+
+  int x1 = t.points[1].x, y1 = t.points[1].y;
+  float z1 = t.points[1].z, w1 = t.points[1].w;
+
+  int x2 = t.points[2].x, y2 = t.points[2].y;
+  float z2 = t.points[2].z, w2 = t.points[2].w;
+
+  float u0 = t.texcoords[0].u, v0_aux = t.texcoords[0].v;
+  float u1 = t.texcoords[1].u, v1_aux = t.texcoords[1].v;
+  float u2 = t.texcoords[2].u, v2_aux = t.texcoords[2].v;
+
+  // We need to sort the vertices by y-coordinate ascending (y0 < y1 < y2)
+  if (y0 > y1) {
+    swap(&y0, &y1, sizeof(int));
+    swap(&x0, &x1, sizeof(int));
+    swap(&z0, &z1, sizeof(float));
+    swap(&w0, &w1, sizeof(float));
+
+    swap(&u0, &u1, sizeof(float));
+    swap(&v0_aux, &v1_aux, sizeof(float));
+    swap(&t.points[0], &t.points[1], sizeof(vec4_t));
+  }
+  if (y1 > y2) {
+    swap(&y1, &y2, sizeof(int));
+    swap(&x1, &x2, sizeof(int));
+    swap(&z1, &z2, sizeof(float));
+    swap(&w1, &w2, sizeof(float));
+
+    swap(&u1, &u2, sizeof(float));
+    swap(&v1_aux, &v2_aux, sizeof(float));
+    swap(&t.points[1], &t.points[2], sizeof(vec4_t));
+  }
+  if (y0 > y1) {
+    swap(&y0, &y1, sizeof(int));
+    swap(&x0, &x1, sizeof(int));
+    swap(&z0, &z1, sizeof(float));
+    swap(&w0, &w1, sizeof(float));
+
+    swap(&u0, &u1, sizeof(float));
+    swap(&v0_aux, &v1_aux, sizeof(float));
+    swap(&t.points[0], &t.points[1], sizeof(vec4_t));
+  }
+
+  vec2_t v0 = {t.points[0].x, t.points[0].y};
+  vec2_t v1 = {t.points[1].x, t.points[1].y};
+  vec2_t v2 = {t.points[2].x, t.points[2].y};
+
+  int x_min = floor(MIN(MIN(v0.x, v1.x), v2.x));
+  int y_min = floor(MIN(MIN(v0.y, v1.y), v2.y));
+  int x_max = ceil(MAX(MAX(v0.x, v1.x), v2.x));
+  int y_max = ceil(MAX(MAX(v0.y, v1.y), v2.y));
+
+  // Compute the constant delta_s that will be used for the horizontal and
+  // vertical steps
+  float delta_w0_col = (v1.y - v2.y);
+  float delta_w1_col = (v2.y - v0.y);
+  float delta_w2_col = (v0.y - v1.y);
+
+  float delta_w0_row = (v2.x - v1.x);
+  float delta_w1_row = (v0.x - v2.x);
+  float delta_w2_row = (v1.x - v0.x);
+
+  // Compute the area of the entire triangle/parallelogram
+  float area = edge_cross(&v0, &v1, &v2);
+
+  // Fill convention (top-left rasterization rule)
+  float bias0 = is_top_left(&v1, &v2) ? 0 : -0.0001;
+  float bias1 = is_top_left(&v2, &v0) ? 0 : -0.0001;
+  float bias2 = is_top_left(&v0, &v1) ? 0 : -0.0001;
+
+  vec2_t p0 = {x_min + 0.5f, y_min + 0.5f};
+  float w0_row = edge_cross(&v1, &v2, &p0) + bias0;
+  float w1_row = edge_cross(&v2, &v0, &p0) + bias1;
+  float w2_row = edge_cross(&v0, &v1, &p0) + bias2;
+
+  // Loop all candidate pixels inside the bounding box
+  for (int y = y_min; y <= y_max; y++) {
+    float w0 = w0_row;
+    float w1 = w1_row;
+    float w2 = w2_row;
+    for (int x = x_min; x <= x_max; x++) {
+      bool is_inside = w0 >= 0 && w1 >= 0 && w2 >= 0;
+      if (is_inside) {
+        // Compute the barycentric coordinates
+        float alpha = w0 / area;
+        float beta = w1 / area;
+        float gamma = w2 / area;
+
+        // Interpolate the reciprocal of w
+        float interpolated_reciprocal_w = alpha * (1 / t.points[0].w) +
+                                          beta * (1 / t.points[1].w) +
+                                          gamma * (1 / t.points[2].w);
+
+        draw_texel_optimized(x, y, t.texture, t.points[0], t.points[1],
+                             t.points[2], t.texcoords[1].u, t.texcoords[0].v,
+                             t.texcoords[1].u, t.texcoords[1].v,
+                             t.texcoords[2].u, t.texcoords[2].v, alpha, beta,
+                             gamma, interpolated_reciprocal_w);
       }
       w0 += delta_w0_col;
       w1 += delta_w1_col;
