@@ -56,8 +56,8 @@ void setup(void) {
   load_mesh("./assets/cube.obj", "./assets/cube.png", vec3_new(1, 1, 1),
             vec3_new(-2, 0, 4), vec3_new(0, 3.1416 / 2, 0));
 
-  load_mesh("./assets/tank.obj", NULL, vec3_new(1, 1, 1), vec3_new(2, 0, 4),
-            vec3_new(0, 3.1416 / 2, 0));
+  // load_mesh("./assets/tank.obj", "./assets/un.png", vec3_new(1, 1, 1), vec3_new(2, 0, 4),
+  //           vec3_new(0, 3.1416 / 2, 0));
 
   load_mesh("./assets/bunny.obj", NULL, vec3_new(4, 4, 4), vec3_new(0, 0, 8),
             vec3_new(0, 0, 0));
