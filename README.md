@@ -6,6 +6,10 @@ Welcome to the Cool Rendering Engine! This project was built from scratch and us
 Some of the assets I used are exclusive to Gustavo Pezzi and therefore, they were not included in this repository.
 Credits to https://courses.pikuma.com/ for making computer graphics just the most fun stuff ever.
 
+If you happen to have access to the textures that I do not provide here,
+I left some code in the main.c in the setup function with some meshes to
+play around :)
+
 ## Installation
 
 To get started with the Cool Rendering Engine, you'll need to install `SDL2` which is used for painting the pixels on the screen and nothing more.
