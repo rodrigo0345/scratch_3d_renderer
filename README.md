@@ -1,8 +1,10 @@
-![banner](https://github.com/rodrigo0345/c_renderer/blob/main/assets/highlight.png)
+![banner](https://github.com/rodrigo0345/scratch_3d_renderer/blob/main/assets/highlight.png)
 
 # Cool Rendering Engine
 
 Welcome to the Cool Rendering Engine! This project was built from scratch and uses a simple C array as its core rasterization buffer. It features real-time 3D rendering with basic lighting, shading, and object loading.
+Some of the assets I used are exclusive to Gustavo Pezzi and therefore, they were not included in this repository.
+Credits to https://courses.pikuma.com/ for making computer graphics just the most fun stuff ever.
 
 ## Installation
 
@@ -79,5 +81,5 @@ While the project is running, you can use the following commands:
 
 Here are some examples of what the engine can do:
 
-[![Demo F22](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22-shading.png)](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22.mov)
-![tank](https://github.com/rodrigo0345/c_renderer/blob/main/assets/tank.png)
+[![Demo F22](https://github.com/rodrigo0345/scratch_3d_renderer/blob/main/assets/f22-shading.png)](https://github.com/rodrigo0345/c_renderer/blob/main/assets/f22.mov)
+![tank](https://github.com/rodrigo0345/scratch_3d_renderer/blob/main/assets/tank.png)
