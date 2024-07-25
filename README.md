@@ -65,12 +65,36 @@ gdb ./build/rendering_engine
 ## Commands
 While the project is running, you can use the following commands:
 
-- 2 - Draw lines only
-- 3 - Fill triangles
-- 4 - Fill and draw lines
-- t - Load the tank model
-- f - Load the F-22 model
-- k - Load the cube model
+
+### General Controls
+
+- Escape (ESC): Exit the application.
+- B (b): Toggle windowed mode.
+- 0 (0): Toggle classic mode.
+- 1 (1): Switch to Wireframe with small dots display mode.
+- 2 (2): Switch to Wireframe lines display mode.
+- 3 (3): Switch to Solid display mode.
+- 4 (4): Switch to Solid and Wireframe display mode.
+- 5 (5): Switch to Textured display mode.
+- 6 (6): Switch to Textured and Wireframe display mode.
+
+### Camera Controls
+
+- W (w): Move the camera forward.
+- S (s): Move the camera backward.
+- A (a): Yaw the camera to the left.
+- D (d): Yaw the camera to the right.
+- Left Shift (LSHIFT): Move the camera upward.
+- Left Control (LCTRL): Move the camera downward.
+- Up Arrow (UP): Pitch the camera upward.
+- Down Arrow (DOWN): Pitch the camera downward.
+
+### Optimization Controls
+
+This optimization uses subpixel arrangement as well as a clever
+way to calculate the barycentric coordenates.
+
+- P (p): Toggle optimized rendering mode.
 
 ## Additional Details
 

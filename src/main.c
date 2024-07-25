@@ -113,22 +113,6 @@ void process_input(void) {
         // solid and wire
         mode = TEXTURED_WIRE;
       }
-      //   else if (event.key.keysym.sym == SDLK_f) {
-      //   const char *filepath = "assets/f22.obj";
-      //   // const char* filepath = "assets/cube.obj";
-      //   // const char* filepath = "assets/tank.obj";
-      //   load_png_texture_data("assets/f22.png");
-      //   load_obj_file_data(filepath);
-      // } else if (event.key.keysym.sym == SDLK_k) {
-      //   const char *filepath = "assets/cube.obj";
-      //   // const char* filepath = "assets/tank.obj";
-      //   load_png_texture_data("assets/cube.png");
-      //   load_obj_file_data(filepath);
-      // } else if (event.key.keysym.sym == SDLK_t) {
-      //   const char *filepath = "assets/drone.obj";
-      //   load_png_texture_data("assets/drone.png");
-      //   load_obj_file_data(filepath);
-      // }
 
       // camera movement
       else if (event.key.keysym.sym == SDLK_w) {
