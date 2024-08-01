@@ -102,7 +102,7 @@ way to calculate the barycentric coordenates.
 
 ## Additional Details
 
-- The engine uses a simple C array for rasterization, making it lightweight and efficient.
+- The engine uses a simple C array for rasterization, making it lightweight but not very efficient xD
 - It currently supports basic 3D object loading and rendering with options for wireframe, filled triangles, and combined modes.
 
 ## Demo
